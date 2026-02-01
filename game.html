@@ -4,22 +4,8 @@
 <meta charset="UTF-8">
 <title>Crossy Road 2.5D</title>
 <style>
-  /* Make body full viewport and center content horizontally, push canvas downward */
-  html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center; /* horizontal center */
-    align-items: flex-start; /* align top, not vertical center */
-    background: #649664;     /* same as game background */
-    overflow: hidden;
-  }
-  canvas {
-    display: block;
-    margin-top: 100px; /* pushes the canvas downward */
-  }
+  body { margin:0; overflow:hidden; background:#649664; }
+  canvas { display:block; margin:0 auto; background:#649664; }
 </style>
 </head>
 <body>
@@ -42,12 +28,16 @@ const CHICKEN_BODY = '#ffffff', CHICKEN_RED = '#dc1e1e';
 
 // --- Assets ---
 function drawChicken(x, y) {
+    // shadow/base
     ctx.fillStyle = '#c8c8c8';
     ctx.fillRect(x+5, y+15, 40, 40);
+    // body
     ctx.fillStyle = CHICKEN_BODY;
     ctx.fillRect(x+5, y+5, 40, 35);
+    // comb
     ctx.fillStyle = CHICKEN_RED;
     ctx.fillRect(x+20, y, 10, 10);
+    // beak
     ctx.fillStyle = '#ffa500';
     ctx.beginPath();
     ctx.moveTo(x+45, y+15);
