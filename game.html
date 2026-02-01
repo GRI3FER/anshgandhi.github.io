@@ -1,17 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crossy Road 2.5D</title>
+    
+    <script src="https://cdn.jsdelivr.net/gh/gzuidhof/coi-serviceworker@latest/coi-serviceworker.min.js"></script>
+    
     <script src="https://pygame-web.github.io/archives/0.9/pygbag.js" data-pwa="false"></script>
+    
     <style>
         body { margin: 0; background: #222; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; }
         canvas { width: 100%; height: auto; max-width: 800px; aspect-ratio: 800 / 900; }
-        #status { color: white; position: absolute; }
+        #status { color: #ffffff; position: absolute; font-size: 1.2rem; }
     </style>
 </head>
 <body>
-    <div id="status">Loading Chicken...</div>
+    <div id="status">Syncing Python with Vercel...</div>
     <div id="pygbag"></div>
 
     <script type="text/python">
@@ -19,9 +24,8 @@ import asyncio
 import pygame
 import random
 
-# --- Settings ---
+# --- CONFIG ---
 WIDTH, HEIGHT = 800, 900
-FPS = 60
 LANE_HEIGHT = 80 
 GRASS_BASE, GRASS_TOP = (45, 160, 70), (58, 185, 84)
 ROAD_BASE, ROAD_LINE = (35, 35, 40), (70, 70, 80)
@@ -83,10 +87,8 @@ async def main():
     assets = {"chicken": get_chicken_sprite(), "car": get_car_sprite((220, 50, 50)), "log": get_log_sprite()}
     state = reset_game(0)
     
-    # Hide the loading status once game starts
     from js import document
-    status_element = document.getElementById("status")
-    if status_element: status_element.style.display = "none"
+    document.getElementById("status").style.display = "none"
 
     while True:
         screen.fill((100, 150, 100))
@@ -141,7 +143,7 @@ async def main():
             screen.blit(font.render("GAME OVER - SPACE TO RESTART", True, (255,255,255)), (WIDTH//2-180, HEIGHT//2))
 
         pygame.display.flip()
-        await asyncio.sleep(0) # Required for browser stability
+        await asyncio.sleep(0)
 
 asyncio.run(main())
     </script>
