@@ -1,151 +1,225 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crossy Road 2.5D</title>
-    
-    <script src="https://cdn.jsdelivr.net/gh/gzuidhof/coi-serviceworker@latest/coi-serviceworker.min.js"></script>
-    
-    <script src="https://pygame-web.github.io/archives/0.9/pygbag.js" data-pwa="false"></script>
-    
-    <style>
-        body { margin: 0; background: #222; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; }
-        canvas { width: 100%; height: auto; max-width: 800px; aspect-ratio: 800 / 900; }
-        #status { color: #ffffff; position: absolute; font-size: 1.2rem; }
-    </style>
+<meta charset="UTF-8">
+<title>Crossy Road 2.5D</title>
+<style>
+  body { margin:0; overflow:hidden; background:#649664; }
+  canvas { display:block; margin:0 auto; background:#649664; }
+</style>
 </head>
 <body>
-    <div id="status">Syncing Python with Vercel...</div>
-    <div id="pygbag"></div>
+<canvas id="gameCanvas" width="800" height="900"></canvas>
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
 
-    <script type="text/python">
-import asyncio
-import pygame
-import random
+const WIDTH = canvas.width;
+const HEIGHT = canvas.height;
+const FPS = 60;
+const LANE_HEIGHT = 80;
 
-# --- CONFIG ---
-WIDTH, HEIGHT = 800, 900
-LANE_HEIGHT = 80 
-GRASS_BASE, GRASS_TOP = (45, 160, 70), (58, 185, 84)
-ROAD_BASE, ROAD_LINE = (35, 35, 40), (70, 70, 80)
-WATER_BASE, WATER_TOP = (30, 100, 200), (50, 150, 255)
-LOG_BASE, LOG_TOP = (80, 40, 20), (120, 70, 40)
-CHICKEN_BODY, CHICKEN_RED = (255, 255, 255), (220, 30, 30)
+// Colors
+const GRASS_BASE = '#2da046', GRASS_TOP = '#3ab954';
+const ROAD_BASE = '#232328', ROAD_LINE = '#464646';
+const WATER_BASE = '#1e64c8', WATER_TOP = '#3296ff';
+const LOG_BASE = '#502814', LOG_TOP = '#784628';
+const CHICKEN_BODY = '#ffffff', CHICKEN_RED = '#dc1e1e';
 
-def get_chicken_sprite():
-    surf = pygame.Surface((50, 60), pygame.SRCALPHA)
-    pygame.draw.rect(surf, (200, 200, 200), (5, 15, 40, 40), border_radius=8)
-    pygame.draw.rect(surf, CHICKEN_BODY, (5, 5, 40, 35), border_radius=8)
-    pygame.draw.rect(surf, CHICKEN_RED, (20, 0, 10, 10), border_radius=2)
-    pygame.draw.polygon(surf, (255, 165, 0), [(45, 15), (55, 22), (45, 30)])
-    return surf
+// --- Assets ---
+function drawChicken(x, y) {
+    // shadow/base
+    ctx.fillStyle = '#c8c8c8';
+    ctx.fillRect(x+5, y+15, 40, 40);
+    // body
+    ctx.fillStyle = CHICKEN_BODY;
+    ctx.fillRect(x+5, y+5, 40, 35);
+    // comb
+    ctx.fillStyle = CHICKEN_RED;
+    ctx.fillRect(x+20, y, 10, 10);
+    // beak
+    ctx.fillStyle = '#ffa500';
+    ctx.beginPath();
+    ctx.moveTo(x+45, y+15);
+    ctx.lineTo(x+55, y+22);
+    ctx.lineTo(x+45, y+30);
+    ctx.fill();
+}
 
-def get_car_sprite(color):
-    surf = pygame.Surface((110, 70), pygame.SRCALPHA)
-    dark_color = [max(0, c - 40) for c in color]
-    pygame.draw.rect(surf, dark_color, (5, 15, 100, 50), border_radius=12)
-    pygame.draw.rect(surf, color, (5, 5, 100, 45), border_radius=12)
-    pygame.draw.rect(surf, color, (30, 10, 50, 25), border_radius=5)
-    pygame.draw.rect(surf, (200, 230, 255), (35, 12, 40, 12), border_radius=2)
-    return surf
+function drawCar(x, y, color) {
+    const dark = color.map(c => Math.max(0, c-40));
+    ctx.fillStyle = `rgb(${dark.join(',')})`;
+    ctx.fillRect(x+5, y+15, 100, 50);
+    ctx.fillStyle = `rgb(${color.join(',')})`;
+    ctx.fillRect(x+5, y+5, 100, 45);
+    ctx.fillRect(x+30, y+10, 50, 25);
+    ctx.fillStyle = 'rgb(200,230,255)';
+    ctx.fillRect(x+35, y+12, 40, 12);
+}
 
-def get_log_sprite():
-    surf = pygame.Surface((180, 60), pygame.SRCALPHA)
-    pygame.draw.rect(surf, LOG_BASE, (0, 10, 180, 50), border_radius=20)
-    pygame.draw.rect(surf, LOG_TOP, (0, 0, 180, 45), border_radius=20)
-    return surf
+function drawLog(x, y) {
+    ctx.fillStyle = LOG_BASE;
+    ctx.fillRect(x, y+10, 180, 50);
+    ctx.fillStyle = LOG_TOP;
+    ctx.fillRect(x, y, 180, 45);
+}
 
-class Lane:
-    def __init__(self, index, type, score):
-        self.index, self.type = index, type
-        self.objects = []
-        self.speed = random.choice([-4, -3, 3, 4]) * (1 + score/500)
-        curr_x = random.randint(0, WIDTH)
-        for _ in range(3):
-            self.spawn_obj(curr_x)
-            curr_x += 300 + random.randint(50, 150)
+// --- Game State ---
+let state = {
+    p_world: [WIDTH/2, 12],
+    lanes: {},
+    score: 0,
+    max_y: 12,
+    high: 0,
+    over: false,
+    cam_y: 12*LANE_HEIGHT - 500
+};
 
-    def spawn_obj(self, x=None):
-        if x is None: x = -200 if self.speed > 0 else WIDTH + 50
-        if self.type == "road": self.objects.append(pygame.Rect(x, 0, 90, 50))
-        elif self.type == "water": self.objects.append(pygame.Rect(x, 0, 170, 55))
+// Key handling
+const keys = {};
+window.addEventListener('keydown', e => keys[e.key] = true);
+window.addEventListener('keyup', e => keys[e.key] = false);
 
-    def update(self):
-        for obj in self.objects: obj.x += self.speed
-        if len(self.objects) < 4 and random.random() < 0.01: self.spawn_obj()
-        self.objects = [o for o in self.objects if -500 < o.x < WIDTH + 500]
+// --- Lane Class ---
+class Lane {
+    constructor(index, type, score) {
+        this.index = index;
+        this.type = type;
+        this.objects = [];
+        this.speed = (Math.random()<0.5?-1:1)*(3+Math.random()*1)*(1 + score/500);
+        let curr_x = Math.random()*WIDTH;
+        for(let i=0;i<3;i++){
+            this.spawnObj(curr_x);
+            curr_x += 300 + Math.random()*150;
+        }
+    }
 
-def reset_game(high):
-    lanes = {i: Lane(i, random.choice(["grass", "road", "water"]) if i < 10 else "grass", 0) for i in range(-50, 15)}
-    return {"p_world": [WIDTH//2, 12], "lanes": lanes, "score": 0, "max_y": 12, "high": high, "over": False, "cam_y": 12 * LANE_HEIGHT - 500}
+    spawnObj(x=null){
+        if(x===null) x = this.speed>0?-200:WIDTH+50;
+        if(this.type==='road') this.objects.push({x:x, y:0, w:90, h:50});
+        else if(this.type==='water') this.objects.push({x:x, y:0, w:170, h:55});
+    }
 
-async def main():
-    pygame.init()
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    font = pygame.font.SysFont("Verdana", 24, bold=True)
-    assets = {"chicken": get_chicken_sprite(), "car": get_car_sprite((220, 50, 50)), "log": get_log_sprite()}
-    state = reset_game(0)
-    
-    from js import document
-    document.getElementById("status").style.display = "none"
+    update(){
+        for(let obj of this.objects) obj.x += this.speed;
+        if(this.objects.length<4 && Math.random()<0.01) this.spawnObj();
+        this.objects = this.objects.filter(o=>o.x>-500 && o.x<WIDTH+500);
+    }
+}
 
-    while True:
-        screen.fill((100, 150, 100))
-        state["cam_y"] += ((state["p_world"][1] * LANE_HEIGHT - 500) - state["cam_y"]) * 0.1
-        
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN and not state["over"]:
-                if event.key in [pygame.K_UP, pygame.K_w]:
-                    state["p_world"][1] -= 1
-                    if state["p_world"][1] < state["max_y"]: state["max_y"], state["score"] = state["p_world"][1], state["score"] + 1
-                if event.key in [pygame.K_DOWN, pygame.K_s] and state["p_world"][1] < state["max_y"] + 5: state["p_world"][1] += 1
-                if event.key in [pygame.K_LEFT, pygame.K_a]: state["p_world"][0] -= 60
-                if event.key in [pygame.K_RIGHT, pygame.K_d]: state["p_world"][0] += 60
-            elif event.type == pygame.KEYDOWN and state["over"] and event.key == pygame.K_SPACE:
-                state = reset_game(state["high"])
+// --- Game Functions ---
+function resetGame() {
+    state.lanes = {};
+    for(let i=-50;i<15;i++){
+        let type = i<10 ? ['grass','road','water'][Math.floor(Math.random()*3)] : 'grass';
+        state.lanes[i] = new Lane(i, type, state.score);
+    }
+    state.p_world = [WIDTH/2,12];
+    state.score = 0;
+    state.max_y = 12;
+    state.over = false;
+    state.cam_y = 12*LANE_HEIGHT - 500;
+}
 
-        if not state["over"]:
-            on_log, in_water = False, False
-            visible = range(int(state["cam_y"]//LANE_HEIGHT) - 2, int(state["cam_y"]//LANE_HEIGHT) + 14)
-            for i in sorted(state["lanes"].keys(), reverse=True):
-                if i not in visible: continue
-                l = state["lanes"][i]
-                l.update()
-                dy = (l.index * LANE_HEIGHT) - state["cam_y"]
-                
-                if l.type == "grass":
-                    pygame.draw.rect(screen, GRASS_BASE, (0, dy+5, WIDTH, LANE_HEIGHT))
-                    pygame.draw.rect(screen, GRASS_TOP, (0, dy, WIDTH, LANE_HEIGHT-5))
-                elif l.type == "road":
-                    pygame.draw.rect(screen, ROAD_BASE, (0, dy, WIDTH, LANE_HEIGHT))
-                    pygame.draw.rect(screen, ROAD_LINE, (0, dy + LANE_HEIGHT//2, WIDTH, 2))
-                elif l.type == "water":
-                    pygame.draw.rect(screen, WATER_BASE, (0, dy+5, WIDTH, LANE_HEIGHT))
-                    pygame.draw.rect(screen, WATER_TOP, (0, dy, WIDTH, LANE_HEIGHT-5))
-                
-                ph = pygame.Rect(state["p_world"][0]+10, state["p_world"][1]*LANE_HEIGHT+20, 30, 30)
-                for obj in l.objects:
-                    ow = pygame.Rect(obj.x, l.index * LANE_HEIGHT, obj.width, obj.height)
-                    if l.type == "road":
-                        screen.blit(assets["car"], (obj.x, dy + 5))
-                        if ph.colliderect(ow): state["over"] = True
-                    elif l.type == "water":
-                        screen.blit(assets["log"], (obj.x, dy + 5))
-                        if ph.colliderect(ow): on_log, state["p_world"][0] = True, state["p_world"][0] + l.speed
-                if l.index == state["p_world"][1] and l.type == "water": in_water = True
+// --- Game Loop ---
+function gameLoop(){
+    ctx.fillStyle = '#649664';
+    ctx.fillRect(0,0,WIDTH,HEIGHT);
 
-            px, py = state["p_world"][0], (state["p_world"][1] * LANE_HEIGHT) - state["cam_y"]
-            screen.blit(assets["chicken"], (px, py))
-            if (in_water and not on_log) or px < -20 or px > WIDTH - 20: state["over"] = True
-            screen.blit(font.render(f"SCORE: {state['score']}", True, (255,255,255)), (20, 20))
-        else:
-            screen.blit(font.render("GAME OVER - SPACE TO RESTART", True, (255,255,255)), (WIDTH//2-180, HEIGHT//2))
+    // Camera follow
+    state.cam_y += ((state.p_world[1]*LANE_HEIGHT-500) - state.cam_y)*0.1;
 
-        pygame.display.flip()
-        await asyncio.sleep(0)
+    // Movement
+    if(!state.over){
+        if(keys['ArrowUp']||keys['w']){ 
+            state.p_world[1]-=1;
+            if(state.p_world[1]<state.max_y){
+                state.max_y = state.p_world[1];
+                state.score++;
+            }
+            keys['ArrowUp']=keys['w']=false;
+        }
+        if(keys['ArrowDown']||keys['s']){
+            if(state.p_world[1]<state.max_y+5) state.p_world[1]+=1;
+            keys['ArrowDown']=keys['s']=false;
+        }
+        if(keys['ArrowLeft']||keys['a']){ state.p_world[0]-=60; keys['ArrowLeft']=keys['a']=false;}
+        if(keys['ArrowRight']||keys['d']){ state.p_world[0]+=60; keys['ArrowRight']=keys['d']=false;}
+    } else if(keys[' ']){
+        resetGame();
+        keys[' ']=false;
+    }
 
-asyncio.run(main())
-    </script>
+    // Draw lanes back-to-front
+    let visible_range = [Math.floor(state.cam_y/LANE_HEIGHT)-2, Math.floor(state.cam_y/LANE_HEIGHT)+14];
+    let on_log=false, in_water=false;
+
+    Object.keys(state.lanes).sort((a,b)=>b-a).forEach(k=>{
+        let l = state.lanes[k];
+        if(l.index<visible_range[0] || l.index>visible_range[1]) return;
+        l.update();
+        let draw_y = l.index*LANE_HEIGHT - state.cam_y;
+        // Lane floor
+        if(l.type==='grass'){
+            ctx.fillStyle = GRASS_BASE; ctx.fillRect(0, draw_y+5, WIDTH, LANE_HEIGHT);
+            ctx.fillStyle = GRASS_TOP; ctx.fillRect(0, draw_y, WIDTH, LANE_HEIGHT-5);
+        } else if(l.type==='road'){
+            ctx.fillStyle = ROAD_BASE; ctx.fillRect(0, draw_y, WIDTH, LANE_HEIGHT);
+            ctx.fillStyle = ROAD_LINE; ctx.fillRect(0, draw_y+LANE_HEIGHT/2, WIDTH,2);
+        } else if(l.type==='water'){
+            ctx.fillStyle = WATER_BASE; ctx.fillRect(0, draw_y+5, WIDTH, LANE_HEIGHT);
+            ctx.fillStyle = WATER_TOP; ctx.fillRect(0, draw_y, WIDTH, LANE_HEIGHT-5);
+        }
+
+        let playerHitbox = {x: state.p_world[0]+10, y: state.p_world[1]*LANE_HEIGHT+20, w:30, h:30};
+
+        for(let obj of l.objects){
+            let objWorld = {x: obj.x, y: l.index*LANE_HEIGHT, w: obj.w, h: obj.h};
+            let objDrawY = draw_y + (LANE_HEIGHT-obj.h)/2;
+            if(l.type==='road'){
+                drawCar(obj.x, objDrawY-10,[220,50,50]);
+                if(collide(playerHitbox,objWorld)) state.over = true;
+            } else if(l.type==='water'){
+                drawLog(obj.x,objDrawY-10);
+                if(collide(playerHitbox,objWorld)){
+                    on_log=true;
+                    state.p_world[0]+=l.speed;
+                }
+            }
+        }
+
+        if(l.index===state.p_world[1] && l.type==='water') in_water = true;
+    });
+
+    // Draw player
+    drawChicken(state.p_world[0], state.p_world[1]*LANE_HEIGHT - state.cam_y);
+
+    // Post-update logic
+    if((in_water && !on_log) || state.p_world[0]<-20 || state.p_world[0]>WIDTH-20) state.over=true;
+    if(state.score>state.high) state.high=state.score;
+
+    // UI
+    ctx.fillStyle='white'; ctx.font='24px Verdana';
+    ctx.fillText(`SCORE: ${state.score}`,20,30);
+    ctx.fillStyle='rgb(255,200,0)'; ctx.fillText(`HIGH: ${state.high}`,20,60);
+
+    // Game over overlay
+    if(state.over){
+        ctx.fillStyle='rgba(0,0,0,0.6)';
+        ctx.fillRect(0,0,WIDTH,HEIGHT);
+        ctx.fillStyle='white'; ctx.font='30px Verdana';
+        ctx.fillText("GAME OVER - SPACE TO RESTART",WIDTH/2-180,HEIGHT/2);
+    }
+
+    requestAnimationFrame(gameLoop);
+}
+
+function collide(a,b){
+    return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y;
+}
+
+resetGame();
+gameLoop();
+</script>
 </body>
 </html>
