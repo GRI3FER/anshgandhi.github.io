@@ -1,225 +1,401 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Crossy Road 2.5D</title>
-<style>
-  body { margin:0; overflow:hidden; background:#649664; }
-  canvas { display:block; margin:0 auto; background:#649664; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crossy Road 2.5D</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Verdana', sans-serif;
+        }
+        
+        #gameContainer {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            padding: 20px;
+        }
+        
+        canvas {
+            display: block;
+            border: 3px solid #333;
+            border-radius: 5px;
+        }
+        
+        .controls {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        .controls h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        
+        .controls p {
+            margin: 5px 0;
+            color: #666;
+        }
+        
+        .key {
+            display: inline-block;
+            padding: 5px 10px;
+            background: #667eea;
+            color: white;
+            border-radius: 3px;
+            font-weight: bold;
+            margin: 0 2px;
+        }
+    </style>
 </head>
 <body>
-<canvas id="gameCanvas" width="800" height="900"></canvas>
-<script>
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="900"></canvas>
+        <div class="controls">
+            <h3>🎮 Controls</h3>
+            <p><span class="key">W</span> Move Up | <span class="key">S</span> Move Down | <span class="key">A</span> Move Left | <span class="key">D</span> Move Right</p>
+            <p><span class="key">SPACE</span> Restart (when game over)</p>
+        </div>
+    </div>
 
-const WIDTH = canvas.width;
-const HEIGHT = canvas.height;
-const FPS = 60;
-const LANE_HEIGHT = 80;
-
-// Colors
-const GRASS_BASE = '#2da046', GRASS_TOP = '#3ab954';
-const ROAD_BASE = '#232328', ROAD_LINE = '#464646';
-const WATER_BASE = '#1e64c8', WATER_TOP = '#3296ff';
-const LOG_BASE = '#502814', LOG_TOP = '#784628';
-const CHICKEN_BODY = '#ffffff', CHICKEN_RED = '#dc1e1e';
-
-// --- Assets ---
-function drawChicken(x, y) {
-    // shadow/base
-    ctx.fillStyle = '#c8c8c8';
-    ctx.fillRect(x+5, y+15, 40, 40);
-    // body
-    ctx.fillStyle = CHICKEN_BODY;
-    ctx.fillRect(x+5, y+5, 40, 35);
-    // comb
-    ctx.fillStyle = CHICKEN_RED;
-    ctx.fillRect(x+20, y, 10, 10);
-    // beak
-    ctx.fillStyle = '#ffa500';
-    ctx.beginPath();
-    ctx.moveTo(x+45, y+15);
-    ctx.lineTo(x+55, y+22);
-    ctx.lineTo(x+45, y+30);
-    ctx.fill();
-}
-
-function drawCar(x, y, color) {
-    const dark = color.map(c => Math.max(0, c-40));
-    ctx.fillStyle = `rgb(${dark.join(',')})`;
-    ctx.fillRect(x+5, y+15, 100, 50);
-    ctx.fillStyle = `rgb(${color.join(',')})`;
-    ctx.fillRect(x+5, y+5, 100, 45);
-    ctx.fillRect(x+30, y+10, 50, 25);
-    ctx.fillStyle = 'rgb(200,230,255)';
-    ctx.fillRect(x+35, y+12, 40, 12);
-}
-
-function drawLog(x, y) {
-    ctx.fillStyle = LOG_BASE;
-    ctx.fillRect(x, y+10, 180, 50);
-    ctx.fillStyle = LOG_TOP;
-    ctx.fillRect(x, y, 180, 45);
-}
-
-// --- Game State ---
-let state = {
-    p_world: [WIDTH/2, 12],
-    lanes: {},
-    score: 0,
-    max_y: 12,
-    high: 0,
-    over: false,
-    cam_y: 12*LANE_HEIGHT - 500
-};
-
-// Key handling
-const keys = {};
-window.addEventListener('keydown', e => keys[e.key] = true);
-window.addEventListener('keyup', e => keys[e.key] = false);
-
-// --- Lane Class ---
-class Lane {
-    constructor(index, type, score) {
-        this.index = index;
-        this.type = type;
-        this.objects = [];
-        this.speed = (Math.random()<0.5?-1:1)*(3+Math.random()*1)*(1 + score/500);
-        let curr_x = Math.random()*WIDTH;
-        for(let i=0;i<3;i++){
-            this.spawnObj(curr_x);
-            curr_x += 300 + Math.random()*150;
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // --- Settings & Aesthetics ---
+        const WIDTH = 800, HEIGHT = 900;
+        const FPS = 60;
+        const LANE_HEIGHT = 80;
+        
+        // Voxel-ish Palette
+        const GRASS_BASE = [45, 160, 70];
+        const GRASS_TOP = [58, 185, 84];
+        const ROAD_BASE = [35, 35, 40];
+        const ROAD_LINE = [70, 70, 80];
+        const WATER_BASE = [30, 100, 200];
+        const WATER_TOP = [50, 150, 255];
+        const LOG_BASE = [80, 40, 20];
+        const LOG_TOP = [120, 70, 40];
+        const CHICKEN_BODY = [255, 255, 255];
+        const CHICKEN_RED = [220, 30, 30];
+        
+        // Helper functions
+        function rgb(arr) {
+            return `rgb(${arr[0]}, ${arr[1]}, ${arr[2]})`;
         }
-    }
-
-    spawnObj(x=null){
-        if(x===null) x = this.speed>0?-200:WIDTH+50;
-        if(this.type==='road') this.objects.push({x:x, y:0, w:90, h:50});
-        else if(this.type==='water') this.objects.push({x:x, y:0, w:170, h:55});
-    }
-
-    update(){
-        for(let obj of this.objects) obj.x += this.speed;
-        if(this.objects.length<4 && Math.random()<0.01) this.spawnObj();
-        this.objects = this.objects.filter(o=>o.x>-500 && o.x<WIDTH+500);
-    }
-}
-
-// --- Game Functions ---
-function resetGame() {
-    state.lanes = {};
-    for(let i=-50;i<15;i++){
-        let type = i<10 ? ['grass','road','water'][Math.floor(Math.random()*3)] : 'grass';
-        state.lanes[i] = new Lane(i, type, state.score);
-    }
-    state.p_world = [WIDTH/2,12];
-    state.score = 0;
-    state.max_y = 12;
-    state.over = false;
-    state.cam_y = 12*LANE_HEIGHT - 500;
-}
-
-// --- Game Loop ---
-function gameLoop(){
-    ctx.fillStyle = '#649664';
-    ctx.fillRect(0,0,WIDTH,HEIGHT);
-
-    // Camera follow
-    state.cam_y += ((state.p_world[1]*LANE_HEIGHT-500) - state.cam_y)*0.1;
-
-    // Movement
-    if(!state.over){
-        if(keys['ArrowUp']||keys['w']){ 
-            state.p_world[1]-=1;
-            if(state.p_world[1]<state.max_y){
-                state.max_y = state.p_world[1];
-                state.score++;
-            }
-            keys['ArrowUp']=keys['w']=false;
+        
+        function rectCollide(r1, r2) {
+            return r1.x < r2.x + r2.w &&
+                   r1.x + r1.w > r2.x &&
+                   r1.y < r2.y + r2.h &&
+                   r1.y + r1.h > r2.y;
         }
-        if(keys['ArrowDown']||keys['s']){
-            if(state.p_world[1]<state.max_y+5) state.p_world[1]+=1;
-            keys['ArrowDown']=keys['s']=false;
+        
+        // Sprite generators
+        function getChickenSprite() {
+            const surf = document.createElement('canvas');
+            surf.width = 50;
+            surf.height = 60;
+            const c = surf.getContext('2d');
+            
+            c.fillStyle = 'rgb(200, 200, 200)';
+            c.beginPath();
+            c.roundRect(5, 15, 40, 40, 8);
+            c.fill();
+            
+            c.fillStyle = rgb(CHICKEN_BODY);
+            c.beginPath();
+            c.roundRect(5, 5, 40, 35, 8);
+            c.fill();
+            
+            c.fillStyle = rgb(CHICKEN_RED);
+            c.beginPath();
+            c.roundRect(20, 0, 10, 10, 2);
+            c.fill();
+            
+            c.fillStyle = 'rgb(255, 165, 0)';
+            c.beginPath();
+            c.moveTo(45, 15);
+            c.lineTo(55, 22);
+            c.lineTo(45, 30);
+            c.fill();
+            
+            return surf;
         }
-        if(keys['ArrowLeft']||keys['a']){ state.p_world[0]-=60; keys['ArrowLeft']=keys['a']=false;}
-        if(keys['ArrowRight']||keys['d']){ state.p_world[0]+=60; keys['ArrowRight']=keys['d']=false;}
-    } else if(keys[' ']){
-        resetGame();
-        keys[' ']=false;
-    }
-
-    // Draw lanes back-to-front
-    let visible_range = [Math.floor(state.cam_y/LANE_HEIGHT)-2, Math.floor(state.cam_y/LANE_HEIGHT)+14];
-    let on_log=false, in_water=false;
-
-    Object.keys(state.lanes).sort((a,b)=>b-a).forEach(k=>{
-        let l = state.lanes[k];
-        if(l.index<visible_range[0] || l.index>visible_range[1]) return;
-        l.update();
-        let draw_y = l.index*LANE_HEIGHT - state.cam_y;
-        // Lane floor
-        if(l.type==='grass'){
-            ctx.fillStyle = GRASS_BASE; ctx.fillRect(0, draw_y+5, WIDTH, LANE_HEIGHT);
-            ctx.fillStyle = GRASS_TOP; ctx.fillRect(0, draw_y, WIDTH, LANE_HEIGHT-5);
-        } else if(l.type==='road'){
-            ctx.fillStyle = ROAD_BASE; ctx.fillRect(0, draw_y, WIDTH, LANE_HEIGHT);
-            ctx.fillStyle = ROAD_LINE; ctx.fillRect(0, draw_y+LANE_HEIGHT/2, WIDTH,2);
-        } else if(l.type==='water'){
-            ctx.fillStyle = WATER_BASE; ctx.fillRect(0, draw_y+5, WIDTH, LANE_HEIGHT);
-            ctx.fillStyle = WATER_TOP; ctx.fillRect(0, draw_y, WIDTH, LANE_HEIGHT-5);
+        
+        function getCarSprite(color) {
+            const surf = document.createElement('canvas');
+            surf.width = 110;
+            surf.height = 70;
+            const c = surf.getContext('2d');
+            
+            const darkColor = color.map(x => Math.max(0, x - 40));
+            
+            c.fillStyle = rgb(darkColor);
+            c.beginPath();
+            c.roundRect(5, 15, 100, 50, 12);
+            c.fill();
+            
+            c.fillStyle = rgb(color);
+            c.beginPath();
+            c.roundRect(5, 5, 100, 45, 12);
+            c.fill();
+            
+            c.beginPath();
+            c.roundRect(30, 10, 50, 25, 5);
+            c.fill();
+            
+            c.fillStyle = 'rgb(200, 230, 255)';
+            c.beginPath();
+            c.roundRect(35, 12, 40, 12, 2);
+            c.fill();
+            
+            return surf;
         }
-
-        let playerHitbox = {x: state.p_world[0]+10, y: state.p_world[1]*LANE_HEIGHT+20, w:30, h:30};
-
-        for(let obj of l.objects){
-            let objWorld = {x: obj.x, y: l.index*LANE_HEIGHT, w: obj.w, h: obj.h};
-            let objDrawY = draw_y + (LANE_HEIGHT-obj.h)/2;
-            if(l.type==='road'){
-                drawCar(obj.x, objDrawY-10,[220,50,50]);
-                if(collide(playerHitbox,objWorld)) state.over = true;
-            } else if(l.type==='water'){
-                drawLog(obj.x,objDrawY-10);
-                if(collide(playerHitbox,objWorld)){
-                    on_log=true;
-                    state.p_world[0]+=l.speed;
+        
+        function getLogSprite() {
+            const surf = document.createElement('canvas');
+            surf.width = 180;
+            surf.height = 60;
+            const c = surf.getContext('2d');
+            
+            c.fillStyle = rgb(LOG_BASE);
+            c.beginPath();
+            c.roundRect(0, 10, 180, 50, 20);
+            c.fill();
+            
+            c.fillStyle = rgb(LOG_TOP);
+            c.beginPath();
+            c.roundRect(0, 0, 180, 45, 20);
+            c.fill();
+            
+            return surf;
+        }
+        
+        // Pre-bake assets
+        const ASSETS = {
+            chicken: getChickenSprite(),
+            car: getCarSprite([220, 50, 50]),
+            log: getLogSprite()
+        };
+        
+        // Lane class
+        class Lane {
+            constructor(index, type, score) {
+                this.index = index;
+                this.type = type;
+                this.objects = [];
+                this.speed = [- 4, -3, 3, 4][Math.floor(Math.random() * 4)] * (1 + score / 500);
+                let currX = Math.random() * WIDTH;
+                for (let i = 0; i < 3; i++) {
+                    this.spawnObj(currX);
+                    currX += 300 + Math.random() * 100 + 50;
                 }
             }
+            
+            spawnObj(x = null) {
+                if (x === null) x = this.speed > 0 ? -200 : WIDTH + 50;
+                if (this.type === "road") {
+                    this.objects.push({x: x, y: 0, w: 90, h: 50});
+                } else if (this.type === "water") {
+                    this.objects.push({x: x, y: 0, w: 170, h: 55});
+                }
+            }
+            
+            update() {
+                for (let obj of this.objects) {
+                    obj.x += this.speed;
+                }
+                if (this.objects.length < 4 && Math.random() < 0.01) {
+                    this.spawnObj();
+                }
+                this.objects = this.objects.filter(o => o.x > -500 && o.x < WIDTH + 500);
+            }
         }
-
-        if(l.index===state.p_world[1] && l.type==='water') in_water = true;
-    });
-
-    // Draw player
-    drawChicken(state.p_world[0], state.p_world[1]*LANE_HEIGHT - state.cam_y);
-
-    // Post-update logic
-    if((in_water && !on_log) || state.p_world[0]<-20 || state.p_world[0]>WIDTH-20) state.over=true;
-    if(state.score>state.high) state.high=state.score;
-
-    // UI
-    ctx.fillStyle='white'; ctx.font='24px Verdana';
-    ctx.fillText(`SCORE: ${state.score}`,20,30);
-    ctx.fillStyle='rgb(255,200,0)'; ctx.fillText(`HIGH: ${state.high}`,20,60);
-
-    // Game over overlay
-    if(state.over){
-        ctx.fillStyle='rgba(0,0,0,0.6)';
-        ctx.fillRect(0,0,WIDTH,HEIGHT);
-        ctx.fillStyle='white'; ctx.font='30px Verdana';
-        ctx.fillText("GAME OVER - SPACE TO RESTART",WIDTH/2-180,HEIGHT/2);
-    }
-
-    requestAnimationFrame(gameLoop);
-}
-
-function collide(a,b){
-    return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y;
-}
-
-resetGame();
-gameLoop();
-</script>
+        
+        // Game state
+        let state = {high: 0};
+        
+        function resetGame() {
+            const lanes = {};
+            for (let i = -50; i < 15; i++) {
+                const type = i < 10 ? ["grass", "road", "water"][Math.floor(Math.random() * 3)] : "grass";
+                lanes[i] = new Lane(i, type, 0);
+            }
+            
+            return {
+                p_world: [WIDTH / 2, 12],
+                lanes: lanes,
+                score: 0,
+                max_y: 12,
+                high: state.high,
+                over: false,
+                cam_y: 12 * LANE_HEIGHT - 500
+            };
+        }
+        
+        state = resetGame();
+        
+        // Input handling
+        const keys = {};
+        document.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+            
+            if (!state.over) {
+                if (e.key.toLowerCase() === 'w') {
+                    state.p_world[1] -= 1;
+                    if (state.p_world[1] < state.max_y) {
+                        state.max_y = state.p_world[1];
+                        state.score += 1;
+                    }
+                }
+                if (e.key.toLowerCase() === 's') {
+                    if (state.p_world[1] < state.max_y + 5) {
+                        state.p_world[1] += 1;
+                    }
+                }
+                if (e.key.toLowerCase() === 'a') {
+                    state.p_world[0] -= 60;
+                }
+                if (e.key.toLowerCase() === 'd') {
+                    state.p_world[0] += 60;
+                }
+            } else if (e.key === ' ') {
+                state = resetGame();
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            keys[e.key.toLowerCase()] = false;
+        });
+        
+        // Main game loop
+        function gameLoop() {
+            // Clear screen
+            ctx.fillStyle = 'rgb(100, 150, 100)';
+            ctx.fillRect(0, 0, WIDTH, HEIGHT);
+            
+            // Update camera
+            state.cam_y += ((state.p_world[1] * LANE_HEIGHT - 500) - state.cam_y) * 0.1;
+            
+            if (!state.over) {
+                let onLog = false;
+                let inWater = false;
+                
+                const visibleStart = Math.floor(state.cam_y / LANE_HEIGHT) - 2;
+                const visibleEnd = Math.floor(state.cam_y / LANE_HEIGHT) + 14;
+                
+                const sortedIndices = Object.keys(state.lanes).map(Number).sort((a, b) => b - a);
+                
+                for (let i of sortedIndices) {
+                    if (i < visibleStart || i > visibleEnd) continue;
+                    
+                    const l = state.lanes[i];
+                    l.update();
+                    
+                    const drawY = (l.index * LANE_HEIGHT) - state.cam_y;
+                    
+                    // Draw lane
+                    if (l.type === "grass") {
+                        ctx.fillStyle = rgb(GRASS_BASE);
+                        ctx.fillRect(0, drawY + 5, WIDTH, LANE_HEIGHT);
+                        ctx.fillStyle = rgb(GRASS_TOP);
+                        ctx.fillRect(0, drawY, WIDTH, LANE_HEIGHT - 5);
+                    } else if (l.type === "road") {
+                        ctx.fillStyle = rgb(ROAD_BASE);
+                        ctx.fillRect(0, drawY, WIDTH, LANE_HEIGHT);
+                        ctx.fillStyle = rgb(ROAD_LINE);
+                        ctx.fillRect(0, drawY + LANE_HEIGHT / 2, WIDTH, 2);
+                    } else if (l.type === "water") {
+                        ctx.fillStyle = rgb(WATER_BASE);
+                        ctx.fillRect(0, drawY + 5, WIDTH, LANE_HEIGHT);
+                        ctx.fillStyle = rgb(WATER_TOP);
+                        ctx.fillRect(0, drawY, WIDTH, LANE_HEIGHT - 5);
+                    }
+                    
+                    // Player hitbox
+                    const playerHitbox = {
+                        x: state.p_world[0] + 10,
+                        y: state.p_world[1] * LANE_HEIGHT + 20,
+                        w: 30,
+                        h: 30
+                    };
+                    
+                    // Draw objects and check collisions
+                    for (let obj of l.objects) {
+                        const objWorldRect = {
+                            x: obj.x,
+                            y: l.index * LANE_HEIGHT,
+                            w: obj.w,
+                            h: obj.h
+                        };
+                        
+                        const objDrawY = drawY + (LANE_HEIGHT - obj.h) / 2;
+                        
+                        if (l.type === "road") {
+                            ctx.drawImage(ASSETS.car, obj.x, objDrawY - 10);
+                            if (rectCollide(playerHitbox, objWorldRect)) {
+                                state.over = true;
+                            }
+                        } else if (l.type === "water") {
+                            ctx.drawImage(ASSETS.log, obj.x, objDrawY - 10);
+                            if (rectCollide(playerHitbox, objWorldRect)) {
+                                onLog = true;
+                                state.p_world[0] += l.speed;
+                            }
+                        }
+                    }
+                    
+                    if (l.index === state.p_world[1] && l.type === "water") {
+                        inWater = true;
+                    }
+                }
+                
+                // Draw player
+                const px = state.p_world[0];
+                const py = (state.p_world[1] * LANE_HEIGHT) - state.cam_y;
+                ctx.drawImage(ASSETS.chicken, px, py);
+                
+                // Check death conditions
+                if ((inWater && !onLog) || px < -20 || px > WIDTH - 20) {
+                    state.over = true;
+                }
+                
+                if (state.score > state.high) {
+                    state.high = state.score;
+                }
+                
+                // Draw score
+                ctx.font = 'bold 24px Verdana';
+                ctx.fillStyle = 'white';
+                ctx.fillText(`SCORE: ${state.score}`, 20, 40);
+                ctx.fillStyle = 'rgb(255, 200, 0)';
+                ctx.fillText(`HIGH: ${state.high}`, 20, 70);
+            } else {
+                // Game over overlay
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+                ctx.fillRect(0, 0, WIDTH, HEIGHT);
+                ctx.font = 'bold 24px Verdana';
+                ctx.fillStyle = 'white';
+                ctx.fillText('GAME OVER - SPACE TO RESTART', WIDTH / 2 - 220, HEIGHT / 2);
+            }
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Start game
+        gameLoop();
+    </script>
 </body>
 </html>
