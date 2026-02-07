@@ -212,8 +212,51 @@ nav { padding: 3% 0; display: flex; justify-content: center; width: 100%; }
 
 /* ===== MOBILE RESPONSIVENESS ===== */
 
+/* Tablet Landscape and below (1024px) */
+@media (max-width: 1024px) {
+    .flip-card {
+        width: 90vw;
+        height: auto;
+        min-height: 65vh;
+    }
+
+    .flip-card-inner {
+        height: auto;
+        min-height: 65vh;
+    }
+
+    .flip-card-front, .flip-card-back {
+        position: relative;
+        height: auto;
+        min-height: 65vh;
+    }
+
+    .circular-pfp {
+        width: 250px;
+        height: 250px;
+        min-width: 250px;
+        min-height: 250px;
+    }
+
+    .hero-text h1 {
+        font-size: 4.5rem !important;
+    }
+
+    .hero-text p {
+        font-size: 1.5rem !important;
+    }
+
+    .card-back-content h2 {
+        font-size: 2.5rem !important;
+    }
+
+    .card-back-content ul li {
+        font-size: 1.3rem !important;
+    }
+}
+
+/* Tablet Portrait (768px) */
 @media (max-width: 768px) {
-    /* Navigation */
     nav { padding: 4% 0; }
     .nav-links { 
         display: flex; 
@@ -227,56 +270,113 @@ nav { padding: 3% 0; display: flex; justify-content: center; width: 100%; }
         padding: 8px 12px;
     }
 
-    /* Section Titles */
     .section-title { font-size: 2.5rem; margin: 3vh 0; }
 
-    /* Home Container & Flip Card */
     .home-container { 
-        min-height: 60vh; 
-        padding: 0 5%; 
+        min-height: auto; 
+        padding: 20px 5%; 
     }
 
     .flip-card {
         width: 95vw;
         height: auto;
-        min-height: 500px;
+        min-height: calc(100vh - 200px);
+        max-height: none;
+    }
+
+    .flip-card-inner {
+        height: auto;
+        min-height: calc(100vh - 200px);
+    }
+
+    .flip-card-front, .flip-card-back {
+        position: relative;
+        height: auto;
+        min-height: calc(100vh - 200px);
+        padding: 6vw;
     }
 
     .flip-card-front {
         flex-direction: column;
         gap: 20px;
-        padding: 25px;
+        justify-content: flex-start;
+        padding-top: 30px;
     }
 
     .flip-card-back {
-        padding: 20px;
+        overflow-y: auto;
+        justify-content: flex-start;
+        padding-top: 30px;
     }
 
     .circular-pfp {
-        width: 150px;
-        height: 150px;
-        min-width: 150px;
-        min-height: 150px;
+        width: clamp(120px, 30vw, 180px);
+        height: clamp(120px, 30vw, 180px);
+        min-width: clamp(120px, 30vw, 180px);
+        min-height: clamp(120px, 30vw, 180px);
         border: 3px solid var(--accent-blue);
     }
 
     .hero-text {
         align-items: center;
         text-align: center;
+        width: 100%;
     }
 
     .hero-text h1 {
-        font-size: 2.5rem;
+        font-size: clamp(2rem, 7vw, 3rem) !important;
         text-align: center;
+        line-height: 1.1;
+        width: 100%;
     }
 
     .hero-text p {
-        font-size: 1rem;
+        font-size: clamp(0.9rem, 3vw, 1.2rem) !important;
         text-align: center;
+        max-width: 100% !important;
+        margin-top: 10px !important;
     }
 
     .card-back-content {
         padding-top: 10px;
+        width: 100%;
+        overflow-y: auto;
+    }
+
+    .card-back-content > div {
+        width: 100%;
+    }
+
+    .card-back-content h2 {
+        font-size: clamp(1.5rem, 5vw, 2rem) !important;
+        margin-bottom: 20px !important;
+    }
+
+    .card-back-content ul {
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100%;
+    }
+
+    .card-back-content ul li {
+        font-size: clamp(0.85rem, 2.5vw, 1.1rem) !important;
+        margin-bottom: 12px !important;
+        line-height: 1.5;
+        text-align: left;
+        padding: 0 5px;
+    }
+
+    .card-back-content ul li b {
+        font-size: clamp(0.9rem, 2.7vw, 1.15rem);
+        display: inline;
+    }
+
+    .card-back-content ul li br {
+        display: none;
+    }
+
+    .card-back-content ul br {
+        display: none;
     }
 
     /* Experience Cards */
@@ -362,41 +462,95 @@ nav { padding: 3% 0; display: flex; justify-content: center; width: 100%; }
     }
 }
 
+/* Mobile Phone Landscape (640px) */
+@media (max-width: 640px) {
+    .flip-card {
+        min-height: calc(100vh - 180px);
+    }
+
+    .flip-card-inner {
+        min-height: calc(100vh - 180px);
+    }
+
+    .flip-card-front, .flip-card-back {
+        min-height: calc(100vh - 180px);
+        padding: 5vw;
+    }
+
+    .hero-text h1 {
+        font-size: clamp(1.75rem, 6.5vw, 2.5rem) !important;
+    }
+
+    .hero-text p {
+        font-size: clamp(0.8rem, 2.8vw, 1.1rem) !important;
+    }
+
+    .card-back-content h2 {
+        font-size: clamp(1.3rem, 4.5vw, 1.8rem) !important;
+    }
+
+    .card-back-content ul li {
+        font-size: clamp(0.75rem, 2.3vw, 1rem) !important;
+    }
+
+    .card-back-content ul li b {
+        font-size: clamp(0.8rem, 2.5vw, 1.05rem);
+    }
+}
+
+/* Mobile Phone Portrait (480px) */
 @media (max-width: 480px) {
-    /* Navigation */
     .nav-links a {
         font-size: 0.8rem;
         margin: 3px 8px;
         padding: 6px 10px;
     }
 
-    /* Section Titles */
     .section-title {
         font-size: 2rem;
     }
 
-    /* Flip Card */
     .flip-card {
-        min-height: 450px;
+        min-height: calc(100vh - 160px);
+    }
+
+    .flip-card-inner {
+        min-height: calc(100vh - 160px);
     }
 
     .flip-card-front, .flip-card-back {
-        padding: 20px;
+        min-height: calc(100vh - 160px);
+        padding: 4vw;
     }
 
     .circular-pfp {
-        width: 120px;
-        height: 120px;
-        min-width: 120px;
-        min-height: 120px;
+        width: clamp(100px, 28vw, 140px);
+        height: clamp(100px, 28vw, 140px);
+        min-width: clamp(100px, 28vw, 140px);
+        min-height: clamp(100px, 28vw, 140px);
     }
 
     .hero-text h1 {
-        font-size: 2rem;
+        font-size: clamp(1.5rem, 6vw, 2.2rem) !important;
     }
 
     .hero-text p {
-        font-size: 0.9rem;
+        font-size: clamp(0.75rem, 2.5vw, 1rem) !important;
+        margin-top: 8px !important;
+    }
+
+    .card-back-content h2 {
+        font-size: clamp(1.2rem, 4.2vw, 1.6rem) !important;
+        margin-bottom: 15px !important;
+    }
+
+    .card-back-content ul li {
+        font-size: clamp(0.7rem, 2.2vw, 0.95rem) !important;
+        margin-bottom: 10px !important;
+    }
+
+    .card-back-content ul li b {
+        font-size: clamp(0.75rem, 2.4vw, 1rem);
     }
 
     /* Experience Cards */
@@ -437,5 +591,49 @@ nav { padding: 3% 0; display: flex; justify-content: center; width: 100%; }
 
     .modal-card {
         padding: 1.25rem;
+    }
+}
+
+/* Small Mobile (375px) */
+@media (max-width: 375px) {
+    .flip-card {
+        min-height: calc(100vh - 140px);
+    }
+
+    .flip-card-inner {
+        min-height: calc(100vh - 140px);
+    }
+
+    .flip-card-front, .flip-card-back {
+        min-height: calc(100vh - 140px);
+        padding: 3.5vw;
+    }
+
+    .hero-text h1 {
+        font-size: clamp(1.4rem, 5.5vw, 2rem) !important;
+    }
+
+    .hero-text p {
+        font-size: clamp(0.7rem, 2.3vw, 0.95rem) !important;
+    }
+
+    .card-back-content h2 {
+        font-size: clamp(1.1rem, 4vw, 1.5rem) !important;
+    }
+
+    .card-back-content ul li {
+        font-size: clamp(0.65rem, 2.1vw, 0.9rem) !important;
+        margin-bottom: 8px !important;
+    }
+
+    .card-back-content ul li b {
+        font-size: clamp(0.7rem, 2.3vw, 0.95rem);
+    }
+
+    .circular-pfp {
+        width: clamp(90px, 26vw, 120px);
+        height: clamp(90px, 26vw, 120px);
+        min-width: clamp(90px, 26vw, 120px);
+        min-height: clamp(90px, 26vw, 120px);
     }
 }
