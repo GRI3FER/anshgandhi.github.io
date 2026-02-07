@@ -3,6 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ansh Gandhi | Home</title>
     <link rel="stylesheet" href="style.css">
     <style>
@@ -213,6 +214,116 @@
 
         .parchment::-webkit-scrollbar-thumb:hover {
             background: #654321;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .quill-button {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+            }
+
+            .quill-icon {
+                font-size: 24px;
+            }
+
+            .parchment {
+                padding: 40px 25px;
+                max-height: 90vh;
+            }
+
+            .poem-title {
+                font-size: 22px;
+            }
+
+            .poem-author {
+                font-size: 16px;
+                margin-bottom: 20px;
+            }
+
+            .poem-lines {
+                font-size: 14px;
+                line-height: 1.6;
+            }
+
+            .flip-card-back .card-back-content h2 {
+                font-size: 2rem !important;
+                margin-bottom: 20px !important;
+            }
+
+            .flip-card-back .card-back-content ul li {
+                font-size: 1.2rem !important;
+                margin-bottom: 10px !important;
+            }
+
+            .flip-card-back .card-back-content ul li br {
+                display: none;
+            }
+
+            .hero-text h1 {
+                font-size: 2rem;
+            }
+
+            .hero-text p {
+                font-size: 0.9rem;
+            }
+
+            .modal-card {
+                width: 90%;
+                margin: 0 auto;
+            }
+
+            nav .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            nav .nav-links a {
+                font-size: 0.9rem;
+                padding: 8px 12px;
+            }
+
+            .contact-trigger {
+                font-size: 0.9rem;
+                padding: 10px 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .parchment {
+                padding: 30px 20px;
+            }
+
+            .poem-title {
+                font-size: 20px;
+            }
+
+            .poem-author {
+                font-size: 14px;
+            }
+
+            .poem-lines {
+                font-size: 13px;
+            }
+
+            .flip-card-back .card-back-content h2 {
+                font-size: 1.5rem !important;
+            }
+
+            .flip-card-back .card-back-content ul li {
+                font-size: 1rem !important;
+            }
+
+            .hero-text h1 {
+                font-size: 1.75rem;
+            }
+
+            .circular-pfp {
+                width: 120px;
+                height: 120px;
+            }
         }
     </style>
 </head>

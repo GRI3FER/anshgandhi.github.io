@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ansh Gandhi | Projects</title>
     <link rel="stylesheet" href="style.css">
     <style>
@@ -16,6 +17,101 @@
         /* Optional: ensure body has no scrollbars from arrow keys */
         html, body {
             overflow-x: hidden;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .exp-card iframe.exp-img {
+                width: 100% !important;
+                max-width: 100%;
+                height: auto;
+                min-height: 400px;
+            }
+
+            .iframe-wrapper {
+                padding: 0;
+                width: 100%;
+            }
+
+            .iframe-wrapper iframe {
+                width: 100% !important;
+                max-width: 100%;
+                height: 600px !important;
+            }
+
+            /* Hide Crossy Road on mobile and show message */
+            .crossy-mobile-notice {
+                display: block;
+                padding: 30px 20px;
+                text-align: center;
+                background: #f5f5f5;
+                border-radius: 8px;
+                margin: 15px;
+            }
+
+            .crossy-mobile-notice h4 {
+                margin-bottom: 10px;
+                color: #333;
+            }
+
+            .crossy-mobile-notice p {
+                color: #666;
+                font-size: 0.9rem;
+            }
+
+            .desktop-only {
+                display: none;
+            }
+
+            .exp-container {
+                padding: 10px;
+            }
+
+            .exp-card {
+                margin: 15px 0;
+            }
+
+            .modal-card {
+                width: 90%;
+                margin: 0 auto;
+            }
+
+            nav .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            nav .nav-links a {
+                font-size: 0.9rem;
+                padding: 8px 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .exp-card h3 {
+                font-size: 1.2rem;
+            }
+
+            .exp-card ul {
+                font-size: 0.9rem;
+                padding: 10px !important;
+            }
+
+            .contact-trigger {
+                font-size: 0.9rem;
+                padding: 10px 20px;
+            }
+
+            .iframe-wrapper iframe {
+                height: 500px !important;
+            }
+        }
+
+        /* Desktop only - hide mobile notice */
+        @media (min-width: 769px) {
+            .crossy-mobile-notice {
+                display: none;
+            }
         }
     </style>
 </head>
@@ -56,7 +152,14 @@
                 <h3>Crossy Road</h3>
             </div>
             
-            <div class="iframe-wrapper" style="overflow: hidden;">
+            <!-- Mobile Notice -->
+            <div class="crossy-mobile-notice">
+                <h4>🎮 Desktop Only</h4>
+                <p>This game requires keyboard controls and is best experienced on desktop.</p>
+            </div>
+
+            <!-- Desktop Game -->
+            <div class="iframe-wrapper desktop-only" style="overflow: hidden;">
                 <iframe 
                     src="crossy.html" 
                     class="exp-img" 
@@ -94,9 +197,11 @@
         const crossyIframe = document.querySelector('iframe[src="game.html"]');
 
         // Focus iframe when clicked
-        crossyIframe.addEventListener('click', () => {
-            crossyIframe.focus();
-        });
+        if (crossyIframe) {
+            crossyIframe.addEventListener('click', () => {
+                crossyIframe.focus();
+            });
+        }
 
         // Prevent arrow key scrolling except when iframe is focused
         document.addEventListener('keydown', function(e) {

@@ -15,7 +15,21 @@ document.addEventListener('DOMContentLoaded', () => {
         flipCard.addEventListener('click', () => {
             flipCard.classList.toggle('flipped');
         });
+
+        // Optional: Prevent accidental flips from scrolling on mobile
+        flipCard.addEventListener('touchstart', (e) => {
+            // Only toggle if it's a tap, not a scroll
+            flipCard.dataset.touchStartY = e.touches[0].clientY;
+        });
+
+        flipCard.addEventListener('touchend', (e) => {
+            const touchEndY = e.changedTouches[0].clientY;
+            const touchStartY = parseFloat(flipCard.dataset.touchStartY);
+            
+            // If movement is less than 10px, it's a tap not a scroll
+            if (Math.abs(touchEndY - touchStartY) < 10) {
+                // Click event will handle the flip
+            }
+        });
     }
 });
-
-
