@@ -68,39 +68,23 @@
 
         /* Parchment Container */
         .parchment {
-            position: relative;
-            max-width: 600px;
-            max-height: 85vh;
-            width: 90%;
-            background: linear-gradient(to bottom, #f4e4c1 0%, #e8d4a0 50%, #f4e4c1 100%);
-            padding: 50px 40px;
-            border-radius: 15px;
-            box-shadow: 
-                0 0 20px rgba(0, 0, 0, 0.3),
-                inset 0 0 100px rgba(139, 69, 19, 0.1);
-            animation: unfurl 0.5s ease;
-            overflow-y: auto;
-            border: 3px solid #000000;
-        }
+    position: relative;
+    max-width: 600px;
+    max-height: 85vh;
+    width: 90%;
+    background: linear-gradient(to bottom, #f4e4c1 0%, #e8d4a0 50%, #f4e4c1 100%);
+    padding: 50px 40px;
+    border-radius: 15px;
+    box-shadow: 
+        0 0 20px rgba(0, 0, 0, 0.3),
+        inset 0 0 100px rgba(139, 69, 19, 0.1);
+    animation: unfurl 0.5s ease;
+    overflow-y: auto;
+    border: 3px solid #000000;
 
-        .parchment::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: 
-                repeating-linear-gradient(
-                    0deg,
-                    transparent,
-                    transparent 2px,
-                    rgba(139, 69, 19, 0.03) 2px,
-                    rgba(139, 69, 19, 0.03) 4px
-                );
-            pointer-events: none;
-            border-radius: 15px;
-        }
+    /* FIXED: make the background move with scroll */
+    background-attachment: local;  /* key change */
+}
 
         @keyframes unfurl {
             from {
