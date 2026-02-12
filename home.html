@@ -1,7 +1,6 @@
 <!-- Ansh Gandhi's Personal Website almost entirely coded with Claude and GitHub Copilot -->
 <!DOCTYPE html>
 <link rel="icon" href="A.png">
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -14,8 +13,8 @@
             position: fixed;
             bottom: 30px;
             right: 30px;
-            width: 60px;
-            height: 60px;
+            width: 80px;
+            height: 80px;
             background: linear-gradient(145deg, #8b4513, #654321);
             border-radius: 50%;
             border: none;
@@ -75,13 +74,13 @@
             width: 90%;
             background: linear-gradient(to bottom, #f4e4c1 0%, #e8d4a0 50%, #f4e4c1 100%);
             padding: 50px 40px;
-            border-radius: 5px;
+            border-radius: 15px;
             box-shadow: 
                 0 0 20px rgba(0, 0, 0, 0.3),
                 inset 0 0 100px rgba(139, 69, 19, 0.1);
             animation: unfurl 0.5s ease;
             overflow-y: auto;
-            border: 2px solid #8b7355;
+            border: 3px solid #000000;
         }
 
         .parchment::before {
@@ -100,7 +99,7 @@
                     rgba(139, 69, 19, 0.03) 4px
                 );
             pointer-events: none;
-            border-radius: 5px;
+            border-radius: 15px;
         }
 
         @keyframes unfurl {
@@ -180,10 +179,11 @@
 
         .poem-lines {
             font-size: 16px;
-            line-height: 1.8;
+            line-height: 1.4;
             color: #3e2723;
             white-space: pre-line;
             font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
+            text-align: center;
         }
 
         .loading {
@@ -247,7 +247,7 @@
 
             .poem-lines {
                 font-size: 14px;
-                line-height: 1.6;
+                line-height: 1.4;
             }
 
             /* Fix flip card content overflow on mobile */
@@ -393,7 +393,7 @@
                     <img src="https://i.imghippo.com/files/nrjs1347YII.png" class="circular-pfp" alt="Ansh Gandhi">
                     <div class="hero-text">
                         <h1>Ansh Gandhi</h1>
-                        <p style="font-weight: 700; color: var(--text-main); margin-top: 15px;">Business Analytics & Consulting Strategy</p>
+                        <p style="font-weight: 700; color: var(--text-main); margin-top: 15px;">Business Administration Student</p>
                         <p style="color: var(--text-sub); margin-top: 10px; max-width: 85%;">Carnegie Mellon Tepper School of Business</p>
                     </div>
                 </div>
@@ -447,78 +447,140 @@
     </div>
 
     <script src="script.js"></script>
-    <script>
-        // Poem functionality
-        const quillButton = document.getElementById('quillButton');
-        const poemModalOverlay = document.getElementById('poemModalOverlay');
-        const poemCloseButton = document.getElementById('poemCloseButton');
-        const poemContent = document.getElementById('poemContent');
+<script>
+    // POETRY API CODE - Connects to Vercel API
+    let poems = [];
 
-        // Fetch a random poem from PoetryDB
-        async function fetchPoem() {
-            try {
-                poemContent.innerHTML = '<div class="loading">Loading poem...</div>';
-                
-                // Get a random poem (using random endpoint)
-                const response = await fetch('https://poetrydb.org/random/1');
-                
-                if (!response.ok) {
-                    throw new Error('Failed to fetch poem');
-                }
-                
-                const data = await response.json();
-                const poem = data[0];
-                
-                // Display the poem
-                displayPoem(poem);
-            } catch (error) {
-                console.error('Error fetching poem:', error);
-                poemContent.innerHTML = `
-                    <div class="error">
-                        <p>Unable to fetch poem at this time.</p>
-                        <p>Please try again later.</p>
-                    </div>
-                `;
-            }
+    // API Configuration
+    const API_URL = "https://poems-api.vercel.app/api/poems";
+    const API_KEY = "pk_poems_9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c";
+
+    // Load poems from API
+    fetch(API_URL, {
+        headers: {
+            'X-API-Key': API_KEY
         }
+    })
+        .then(res => {
+            if (!res.ok) {
+                throw new Error(`API returned ${res.status}: ${res.statusText}`);
+            }
+            return res.json();
+        })
+        .then(data => {
+            poems = data;
+            console.log(`Loaded ${poems.length} poems from API`);
+        })
+        .catch(err => {
+            console.error("Error loading poems from API:", err);
+            poems = [];
+        });
 
-        // Display the poem in the parchment
-        function displayPoem(poem) {
-            const title = poem.title || 'Untitled';
-            const author = poem.author || 'Unknown';
-            const lines = poem.lines ? poem.lines.join('\n') : 'No content available';
+    // Get today's key in month_day format
+    function getTodayKey() {
+        const today = new Date();
+        const month = today.getMonth() + 1;
+        const day = today.getDate();
+        return `${month}_${day}`;
+    }
+
+    // Random helper function
+    function randomFromArray(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    // Display poem in the parchment
+    function displayPoem(poem) {
+        const title = poem.title || 'Untitled';
+        const author = 'Ansh Gandhi';
+        
+        // Remove first line from poem text and clean up extra newlines
+        const lines = (poem.text || "").split("\n");
+        const body = lines.slice(1).join("\n").trim().replace(/\n\n+/g, '\n');
+        
+        poemContent.innerHTML = `
+            <h1 class="poem-title">${title}</h1>
+            <p class="poem-author">By: ${author}</p>
+            <div class="poem-lines">${body}</div>
+        `;
+    }
+
+    // Fetch and display poem
+    async function fetchPoem() {
+        try {
+            poemContent.innerHTML = '<div class="loading">Loading poem...</div>';
             
+            // Wait a bit if poems haven't loaded yet
+            if (poems.length === 0) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            if (poems.length === 0) {
+                throw new Error('No poems available');
+            }
+
+            const todayKey = getTodayKey();
+
+            // Match by month/day (ignore year)
+            const matchingPoems = poems.filter(p => {
+                if (!p.date) return false;
+                const [m, d] = p.date.split("_");
+                return `${parseInt(m)}_${parseInt(d)}` === todayKey;
+            });
+
+            // Choose poem - prefer matching date, otherwise random
+            let selectedPoem;
+            if (matchingPoems.length > 0) {
+                selectedPoem = randomFromArray(matchingPoems);
+                console.log(`Found ${matchingPoems.length} poem(s) for today's date`);
+            } else {
+                selectedPoem = randomFromArray(poems);
+                console.log('No matching poems for today, showing random poem');
+            }
+            
+            // Display the poem
+            displayPoem(selectedPoem);
+        } catch (error) {
+            console.error('Error fetching poem:', error);
             poemContent.innerHTML = `
-                <h1 class="poem-title">${title}</h1>
-                <p class="poem-author">By: ${author}</p>
-                <div class="poem-lines">${lines}</div>
+                <div class="error">
+                    <p>Unable to load poem at this time.</p>
+                    <p>Please try again later.</p>
+                </div>
             `;
         }
+    }
 
-        // Open modal and fetch poem
-        quillButton.addEventListener('click', () => {
-            poemModalOverlay.classList.add('active');
-            fetchPoem();
-        });
+    // Poem functionality
+    const quillButton = document.getElementById('quillButton');
+    const poemModalOverlay = document.getElementById('poemModalOverlay');
+    const poemCloseButton = document.getElementById('poemCloseButton');
+    const poemContent = document.getElementById('poemContent');
 
-        // Close modal
-        poemCloseButton.addEventListener('click', () => {
+    // Open modal and fetch poem
+    quillButton.addEventListener('click', () => {
+        poemModalOverlay.classList.add('active');
+        fetchPoem();
+    });
+
+    // Close modal
+    poemCloseButton.addEventListener('click', () => {
+        poemModalOverlay.classList.remove('active');
+    });
+
+    // Close modal when clicking outside parchment
+    poemModalOverlay.addEventListener('click', (e) => {
+        if (e.target === poemModalOverlay) {
             poemModalOverlay.classList.remove('active');
-        });
+        }
+    });
 
-        // Close modal when clicking outside parchment
-        poemModalOverlay.addEventListener('click', (e) => {
-            if (e.target === poemModalOverlay) {
-                poemModalOverlay.classList.remove('active');
-            }
-        });
-
-        // Close modal with Escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && poemModalOverlay.classList.contains('active')) {
-                poemModalOverlay.classList.remove('active');
-            }
-        });
-    </script>
+    // Close modal with Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && poemModalOverlay.classList.contains('active')) {
+            poemModalOverlay.classList.remove('active');
+        }
+    });
+</script>
 </body>
 </html>
