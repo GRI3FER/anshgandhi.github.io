@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Endorsements - Ansh</title>
+    <style>
+        :root {
+            --primary: #111827; 
+            --accent: #3b82f6;  
+            --bg: #ffffff;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border: #f3f4f6;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Inter', -apple-system, sans-serif; 
+            line-height: 1.6; 
+            color: var(--text-main); 
+            background: var(--bg); 
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .hero { 
+            padding: 100px 20px 40px; 
+            text-align: center; 
+            width: 100%;
+        }
+        .hero h1 { font-size: 3.5em; margin-bottom: 12px; font-weight: 800; letter-spacing: -0.04em; color: var(--primary); }
+        .hero p { font-size: 1.25em; color: var(--text-muted); max-width: 700px; margin: 0 auto; }
+        
+        .marquee-container {
+            width: 100%;
+            overflow: hidden;
+            padding: 80px 0;
+            position: relative;
+            background: #fafafa;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            margin: 40px 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .marquee-track {
+            display: flex;
+            width: max-content;
+            animation: scroll 50s linear infinite;
+        }
+
+        .marquee-track.static {
+            animation: none;
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .marquee-track:not(.static):hover {
+            animation-play-state: paused;
+        }
+
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); } 
+        }
+
+        .endorsement-item { 
+            flex: 0 0 560px;
+            margin: 15px 20px;
+            background: var(--card-bg); 
+            border: 1px solid var(--border);
+            border-radius: 24px; 
+            padding: 40px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.04);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .endorsement-header { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 16px; 
+            margin-bottom: 24px; 
+        }
+
+        .author-link {
+            text-decoration: none;
+            color: var(--primary);
+            transition: color 0.2s;
+        }
+        .author-link:hover {
+            color: var(--accent);
+        }
+
+        .profile-pic { 
+            width: 64px; height: 64px; border-radius: 50%; 
+            background: var(--primary); color: white; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 1.3em; font-weight: 700; flex-shrink: 0; overflow: hidden; 
+        }
+        
+        .endorsement-author h3 { font-size: 1.2em; font-weight: 700; }
+        .endorsement-author .role { color: var(--accent); font-weight: 500; font-size: 0.95em; }
+        
+        .endorsement-text { 
+            font-size: 1.15em; 
+            color: var(--text-main); 
+            line-height: 1.8; 
+            font-style: italic;
+        }
+        
+        .bottom-cta { text-align: center; padding: 40px 20px 100px; width: 100%; }
+        .cta-button { 
+            background: var(--primary); color: white; border: none; 
+            padding: 20px 40px; border-radius: 16px; font-size: 1.1em; 
+            font-weight: 700; cursor: pointer; transition: all 0.2s; 
+            display: inline-flex; align-items: center; gap: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+        .cta-button:hover { background: #000; transform: translateY(-3px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+
+        /* --- Modal --- */
+        .modal { 
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            inset: 0; 
+            background: rgba(17, 24, 39, 0.8); 
+            backdrop-filter: blur(10px); 
+            align-items: center; 
+            justify-content: center; 
+        }
+        .modal.active { display: flex; }
+
+        .modal-content { 
+            background: white; border-radius: 28px; padding: 48px; 
+            max-width: 500px; width: 95%; position: relative; 
+            text-align: center; 
+        }
+        
+        .form-group { margin-bottom: 20px; text-align: center; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.85em; }
+        
+        /* Removed gray background from inputs */
+        .form-group input, .form-group textarea { 
+            width: 100%; padding: 12px; 
+            border: 1px solid #e5e7eb; 
+            border-radius: 10px; 
+            font-size: 1em; 
+            text-align: center;
+            background: #ffffff; /* Clean white background */
+            transition: border-color 0.2s;
+        }
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .submit-btn { 
+            background: var(--primary); color: white; border: none; 
+            padding: 16px; border-radius: 12px; width: 100%; font-weight: 700; cursor: pointer; 
+        }
+
+        .error-text { color: #ef4444; font-size: 0.8em; margin-top: 4px; display: none; }
+
+        @media (max-width: 768px) {
+            .endorsement-item { flex: 0 0 85vw; margin: 10px; padding: 25px; }
+            .hero h1 { font-size: 2.5em; }
+        }
+    </style>
+</head>
+<body>
+
+    <section class="hero">
+        <h1>Professional Endorsements</h1>
+        <p>Insights and feedback from professional collaborators.</p>
+    </section>
+
+    <div class="marquee-container">
+        <div id="marqueeTrack" class="marquee-track"></div>
+    </div>
+
+    <section class="bottom-cta">
+        <button class="cta-button" onclick="openModal()">Provide a Recommendation</button>
+    </section>
+
+    <div id="submissionModal" class="modal">
+        <div class="modal-content">
+            <button style="position:absolute; top:25px; right:25px; border:none; background:none; font-size:28px; cursor:pointer;" onclick="closeModal()">&times;</button>
+            <h2 style="font-size:2em; font-weight:800; margin-bottom:10px;">Share Your Feedback</h2>
+            <p style="color:var(--text-muted); margin-bottom:30px;">Recommendations are reviewed before going live.</p>
+            
+            <form id="endorsementForm">
+                <div class="form-group"><label>Name</label><input type="text" id="name" required placeholder="John Doe"></div>
+                
+                <div class="form-group"><label>Role</label><input type="text" id="role" required placeholder="CEO at Acme"></div>
+
+                <div class="form-group">
+                    <label>LinkedIn URL</label>
+                    <input type="text" id="linkedin" required placeholder="linkedin.com/in/username">
+                    <span id="urlError" class="error-text">Please provide a valid LinkedIn profile link.</span>
+                </div>
+
+                <div class="form-group"><label>Your Recommendation</label><textarea id="endorsement" required rows="4" placeholder="Describe your experience..."></textarea></div>
+                
+                <div class="form-group">
+                    <label>Email (Private)</label>
+                    <input type="email" id="email" required placeholder="name@email.com">
+                    <span id="emailError" class="error-text">Please enter a valid email address.</span>
+                </div>
+                
+                <button type="submit" class="submit-btn" id="submitBtn">Submit Recommendation</button>
+                <div id="formMessage"></div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://recommendations-backend-seven.vercel.app';
+
+        function openModal() { document.getElementById('submissionModal').classList.add('active'); }
+        function closeModal() { document.getElementById('submissionModal').classList.remove('active'); }
+
+        function createProfilePic(name) {
+            const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+            return `<div class="profile-pic">${initials}</div>`;
+        }
+
+        async function loadEndorsements() {
+            const track = document.getElementById('marqueeTrack');
+            try {
+                const res = await fetch(`${API_URL}/api/endorsements`);
+                const data = await res.json();
+                
+                if (!data || data.length === 0) {
+                    track.innerHTML = `<p style="padding:40px; color:#999; text-align: center; width: 100%;">No endorsements yet.</p>`;
+                    track.classList.add('static');
+                    return;
+                }
+
+                const cardHtml = data.map(item => `
+                    <div class="endorsement-item">
+                        <div class="endorsement-header">
+                            ${createProfilePic(item.name)}
+                            <div class="endorsement-author">
+                                <a href="${item.linkedin.startsWith('http') ? item.linkedin : 'https://' + item.linkedin}" target="_blank" class="author-link">
+                                    <h3>${item.name}</h3>
+                                </a>
+                                <div class="role">${item.role}</div>
+                            </div>
+                        </div>
+                        <div class="endorsement-text">"${item.endorsement}"</div>
+                    </div>
+                `).join('');
+
+                if (data.length < 3) {
+                    track.classList.add('static');
+                    track.innerHTML = cardHtml;
+                } else {
+                    track.classList.remove('static');
+                    track.innerHTML = cardHtml + cardHtml;
+                }
+
+            } catch (e) {
+                track.innerHTML = `<p style="padding:20px;">Error connecting.</p>`;
+                track.classList.add('static');
+            }
+        }
+
+        // Form Submission Logic
+        document.getElementById('endorsementForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const linkedin = document.getElementById('linkedin').value;
+            const emailError = document.getElementById('emailError');
+            const urlError = document.getElementById('urlError');
+            
+            // 1. Email Validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                emailError.style.display = 'block';
+                return;
+            } else { emailError.style.display = 'none'; }
+
+            // 2. Simplified LinkedIn Check (Removed generic URL constructor check)
+            if (!linkedin.toLowerCase().includes('linkedin.com')) {
+                urlError.style.display = 'block';
+                return;
+            } else { urlError.style.display = 'none'; }
+
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerText = 'Processing...';
+
+            const payload = {
+                name: document.getElementById('name').value,
+                role: document.getElementById('role').value,
+                relationship: 'Professional',
+                linkedin: linkedin,
+                endorsement: document.getElementById('endorsement').value,
+                email: email
+            };
+
+            try {
+                const res = await fetch(`${API_URL}/api/submit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    document.getElementById('formMessage').innerHTML = '<p style="color:#22c55e; margin-top:15px; font-weight:600;">✓ Success! Pending approval.</p>';
+                    setTimeout(closeModal, 2500);
+                }
+            } catch (err) {
+                document.getElementById('formMessage').innerHTML = '<p style="color:#ef4444; margin-top:15px; font-weight:600;">Server error.</p>';
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Submit Recommendation';
+            }
+        });
+
+        loadEndorsements();
+    </script>
+</body>
+</html>

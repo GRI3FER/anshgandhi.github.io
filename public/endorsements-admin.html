@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Endorsements</title>
+    <style>
+        :root {
+            --primary: #111827; 
+            --accent: #3b82f6;  
+            --bg: #f9fafb;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Inter', -apple-system, sans-serif; 
+            line-height: 1.6; 
+            color: var(--text-main); 
+            background: var(--bg); 
+            min-height: 100vh;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .container { max-width: 800px; margin: 0 auto; }
+        
+        .header { margin-bottom: 50px; }
+        .header h1 { font-size: 2.2em; font-weight: 800; color: var(--primary); letter-spacing: -0.03em; }
+        .header p { color: var(--text-muted); margin-top: 8px; }
+
+        /* --- Tab System --- */
+        .tab-buttons { 
+            display: flex; 
+            justify-content: center; 
+            gap: 12px; 
+            margin-bottom: 40px; 
+            padding: 8px;
+            background: #f3f4f6;
+            border-radius: 16px;
+            display: inline-flex;
+        }
+
+        .tab-btn { 
+            background: none; 
+            border: none; 
+            padding: 12px 24px; 
+            font-size: 0.95em; 
+            font-weight: 600; 
+            color: var(--text-muted); 
+            cursor: pointer; 
+            border-radius: 10px; 
+            transition: all 0.2s ease;
+        }
+
+        /* The "Light Up" Logic */
+        .tab-btn.active { 
+            background: var(--primary); 
+            color: white; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* --- Application Cards --- */
+        .endorsement-item { 
+            background: var(--card-bg); 
+            border: 1px solid var(--border); 
+            border-radius: 20px; 
+            padding: 40px; 
+            margin-bottom: 24px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        .author-info h3 { font-size: 1.25em; font-weight: 700; color: var(--primary); }
+        .author-info .role { color: var(--accent); font-weight: 600; font-size: 0.95em; margin-top: 4px; }
+        .author-info .meta { color: var(--text-muted); font-size: 0.85em; margin-top: 8px; }
+
+        .endorsement-text { 
+            background: #fafafa; 
+            border: 1px solid #f3f4f6; 
+            padding: 24px; 
+            border-radius: 14px; 
+            font-style: italic; 
+            color: #4b5563; 
+            margin: 24px 0;
+            line-height: 1.7;
+        }
+
+        .actions { display: flex; justify-content: center; gap: 12px; }
+        .btn { 
+            padding: 12px 24px; border-radius: 10px; font-size: 0.9em; 
+            font-weight: 700; cursor: pointer; border: 1px solid transparent; 
+            transition: all 0.2s; 
+        }
+        .btn-approve { background: var(--success); color: white; }
+        .btn-reject { background: white; color: var(--danger); border-color: var(--danger); }
+        .btn-delete { background: white; color: var(--text-muted); border-color: var(--border); }
+        .btn:hover { transform: translateY(-1px); opacity: 0.9; }
+
+        /* --- UI States --- */
+        .section-hidden { display: none; }
+        
+        .auth-modal { position: fixed; inset: 0; background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .auth-card { background: white; padding: 50px; border-radius: 24px; max-width: 400px; width: 90%; }
+        .auth-card input { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 12px; margin: 20px 0; text-align: center; font-size: 1.1em; }
+        .auth-card button { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; }
+
+        .message { padding: 15px; border-radius: 12px; margin-bottom: 20px; font-weight: 700; display: inline-block; }
+        .success { background: #d1fae5; color: #065f46; }
+    </style>
+</head>
+<body>
+
+    <div id="authModal" class="auth-modal">
+        <div class="auth-card">
+            <h1>Admin Access</h1>
+            <p>Enter your key to manage recommendations.</p>
+            <input type="password" id="adminKeyInput" placeholder="Security Key">
+            <button onclick="authenticate()">Sign In</button>
+        </div>
+    </div>
+
+    <div class="container" id="mainContent" style="display: none;">
+        <div class="header">
+            <h1>Endorsements Admin</h1>
+            <p>Review and verify professional feedback from collaborators.</p>
+        </div>
+
+        <div id="messageContainer"></div>
+
+        <div class="tab-buttons">
+            <button id="pendingTabBtn" class="tab-btn active" onclick="showTab('pending')">Pending Review</button>
+            <button id="approvedTabBtn" class="tab-btn" onclick="showTab('approved')">Approved</button>
+        </div>
+
+        <div id="pendingSection">
+            <div id="pendingList"></div>
+        </div>
+
+        <div id="approvedSection" class="section-hidden">
+            <div id="approvedList"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://recommendations-backend-seven.vercel.app';
+        let adminKey = localStorage.getItem('adminKey');
+
+        if (adminKey) {
+            document.getElementById('authModal').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            loadAll();
+        }
+
+        function authenticate() {
+            const key = document.getElementById('adminKeyInput').value;
+            if (!key) return;
+            adminKey = key;
+            localStorage.setItem('adminKey', key);
+            location.reload();
+        }
+
+        // --- TAB TOGGLE LOGIC ---
+        function showTab(tab) {
+            const pendingSection = document.getElementById('pendingSection');
+            const approvedSection = document.getElementById('approvedSection');
+            const pendingBtn = document.getElementById('pendingTabBtn');
+            const approvedBtn = document.getElementById('approvedTabBtn');
+
+            if (tab === 'pending') {
+                pendingSection.classList.remove('section-hidden');
+                approvedSection.classList.add('section-hidden');
+                pendingBtn.classList.add('active');
+                approvedBtn.classList.remove('active');
+            } else {
+                pendingSection.classList.add('section-hidden');
+                approvedSection.classList.remove('section-hidden');
+                pendingBtn.classList.remove('active');
+                approvedBtn.classList.add('active');
+            }
+        }
+
+        async function loadAll() {
+            await fetchEntries('pending');
+            await fetchEntries('approved');
+        }
+
+        async function fetchEntries(status) {
+            try {
+                const res = await fetch(`${API_URL}/api/admin/endorsements?status=${status}`, {
+                    headers: { 'X-Admin-Key': adminKey }
+                });
+                if (res.status === 401) { localStorage.removeItem('adminKey'); location.reload(); }
+                
+                let data = await res.json();
+                
+                // SORT BY DATE: Newest First
+                data.sort((a, b) => new Date(b.submittedDate) - new Date(a.submittedDate));
+
+                renderList(status === 'pending' ? 'pendingList' : 'approvedList', data, status === 'pending');
+            } catch (e) { console.error(e); }
+        }
+
+        function renderList(containerId, data, isPending) {
+            const container = document.getElementById(containerId);
+            if (data.length === 0) {
+                container.innerHTML = `<p style="color:var(--text-muted); padding:40px;">No ${isPending ? 'pending' : 'approved'} recommendations.</p>`;
+                return;
+            }
+
+            container.innerHTML = data.map(item => `
+                <div class="endorsement-item">
+                    <div class="author-info">
+                        <h3>${escapeHtml(item.name)}</h3>
+                        <div class="role">${escapeHtml(item.role)}</div>
+                        <div class="meta">${new Date(item.submittedDate).toLocaleDateString()} • ${escapeHtml(item.email)}</div>
+                    </div>
+                    <div class="endorsement-text">"${escapeHtml(item.endorsement)}"</div>
+                    <div class="actions">
+                        ${isPending ? `
+                            <button class="btn btn-approve" onclick="handleAction('${item._id}', 'approve')">Approve</button>
+                            <button class="btn btn-reject" onclick="handleAction('${item._id}', 'delete')">Reject</button>
+                        ` : `
+                            <button class="btn btn-delete" onclick="handleAction('${item._id}', 'delete')">Remove</button>
+                        `}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function handleAction(id, type) {
+            if (type === 'delete' && !confirm('Are you sure you want to delete this?')) return;
+            const endpoint = type === 'approve' ? 'approve' : 'delete';
+            const method = type === 'approve' ? 'POST' : 'DELETE';
+
+            try {
+                const res = await fetch(`${API_URL}/api/admin/${endpoint}?id=${id}`, {
+                    method: method,
+                    headers: { 'X-Admin-Key': adminKey }
+                });
+                if (res.ok) {
+                    showMsg(type === 'approve' ? 'Recommendation Approved' : 'Deleted Successfully');
+                    loadAll();
+                }
+            } catch (e) { alert('Action failed'); }
+        }
+
+        function showMsg(txt) {
+            const mc = document.getElementById('messageContainer');
+            mc.innerHTML = `<div class="message success">${txt}</div>`;
+            setTimeout(() => mc.innerHTML = '', 3000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

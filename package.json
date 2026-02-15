@@ -1,0 +1,41 @@
+{
+  "name": "endorsements-backend",
+  "version": "1.0.0",
+  "description": "Backend API for professional endorsements system",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "endorsements",
+    "portfolio",
+    "api"
+  ],
+  "author": "Ansh",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.2",
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.1",
+    "mongoose": "^8.23.0",
+    "nodemailer": "^8.0.1",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GRI3FER/anshgandhi.github.io.git"
+  },
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/GRI3FER/anshgandhi.github.io/issues"
+  },
+  "homepage": "https://github.com/GRI3FER/anshgandhi.github.io#readme"
+}

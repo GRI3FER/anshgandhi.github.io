@@ -157,7 +157,7 @@
             font-size: 18px;
             text-align: center;
             color: #5d4037;
-            margin-bottom: 30px;
+            margin-bottom: 15px;
             font-style: italic;
         }
 
@@ -473,14 +473,36 @@
         return arr[Math.floor(Math.random() * arr.length)];
     }
 
+    // Helper function to fix apostrophes and special characters
+    function fixApostrophes(text) {
+        if (!text) return '';
+        
+        // First, decode any HTML entities
+        const textarea = document.createElement('textarea');
+        textarea.innerHTML = text;
+        let decoded = textarea.value;
+        
+        // Replace ALL variations of apostrophes and quotes with standard apostrophe
+        decoded = decoded.replace(/&#39;/g, "'");           // HTML entity
+        decoded = decoded.replace(/&apos;/g, "'");          // XML entity
+        decoded = decoded.replace(/&#x27;/g, "'");          // Hex entity
+        decoded = decoded.replace(/&#8217;/g, "'");         // Right single quote entity
+        decoded = decoded.replace(/'/g, "'");               // Right single quotation mark (Unicode)
+        decoded = decoded.replace(/'/g, "'");               // Left single quotation mark (Unicode)
+        decoded = decoded.replace(/â€™/g, "'");             // Common UTF-8 encoding issue
+        decoded = decoded.replace(/_/g, "'");               // Replace underscore with apostrophe
+        
+        return decoded;
+    }
+
     // Display poem in the parchment
     function displayPoem(poem) {
-        const title = poem.title || 'Untitled';
+        const title = fixApostrophes(poem.title || 'Untitled');
         const author = 'Ansh Gandhi';
         
         // Remove first line from poem text and clean up extra newlines
         const lines = (poem.text || "").split("\n");
-        const body = lines.slice(1).join("\n").trim().replace(/\n\n+/g, '\n');
+        const body = fixApostrophes(lines.slice(1).join("\n").trim().replace(/\n\n+/g, '\n'));
         
         poemContent.innerHTML = `
             <h1 class="poem-title">${title}</h1>
