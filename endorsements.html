@@ -44,38 +44,21 @@
             border-top: 1px solid var(--border);
             border-bottom: 1px solid var(--border);
             margin: 40px 0;
-            /* Prevent the page from scrolling horizontally when swiping the marquee */
             touch-action: pan-y;
         }
 
         .marquee-track {
             display: flex;
             width: max-content;
-            animation: scroll 50s linear infinite;
-            /* Prevent text selection while swiping */
+            will-change: transform;
             user-select: none;
             -webkit-user-select: none;
         }
 
         .marquee-track.static {
-            animation: none;
             width: 100%;
             justify-content: center;
             flex-wrap: wrap;
-        }
-
-        .marquee-track.paused {
-            animation-play-state: paused;
-        }
-
-        /* Desktop hover pause */
-        .marquee-track:not(.static):hover {
-            animation-play-state: paused;
-        }
-
-        @keyframes scroll {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); } 
         }
 
         .endorsement-item { 
@@ -90,7 +73,6 @@
             flex-direction: column;
             align-items: center;
             text-align: center;
-            /* Prevent cards from acting as drag targets */
             -webkit-tap-highlight-color: transparent;
         }
         
@@ -107,9 +89,7 @@
             color: var(--primary);
             transition: color 0.2s;
         }
-        .author-link:hover {
-            color: var(--accent);
-        }
+        .author-link:hover { color: var(--accent); }
 
         .profile-pic { 
             width: 64px; height: 64px; border-radius: 50%; 
@@ -138,41 +118,25 @@
         }
         .cta-button:hover { background: #000; transform: translateY(-3px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
 
-        /* --- Modal --- */
         .modal { 
-            display: none; 
-            position: fixed; 
-            z-index: 1000; 
-            inset: 0; 
-            background: rgba(17, 24, 39, 0.8); 
-            backdrop-filter: blur(10px); 
-            align-items: center; 
-            justify-content: center; 
+            display: none; position: fixed; z-index: 1000; inset: 0; 
+            background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(10px); 
+            align-items: center; justify-content: center; 
         }
         .modal.active { display: flex; }
 
         .modal-content { 
             background: white; border-radius: 28px; padding: 48px; 
-            max-width: 500px; width: 95%; position: relative; 
-            text-align: center; 
+            max-width: 500px; width: 95%; position: relative; text-align: center; 
         }
         
         .form-group { margin-bottom: 20px; text-align: center; }
         .form-group label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.85em; }
-        
         .form-group input, .form-group textarea { 
-            width: 100%; padding: 12px; 
-            border: 1px solid #e5e7eb; 
-            border-radius: 10px; 
-            font-size: 1em; 
-            text-align: center;
-            background: #ffffff;
-            transition: border-color 0.2s;
+            width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; 
+            font-size: 1em; text-align: center; background: #ffffff; transition: border-color 0.2s;
         }
-        .form-group input:focus, .form-group textarea:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--accent); }
 
         .submit-btn { 
             background: var(--primary); color: white; border: none; 
@@ -211,23 +175,18 @@
             
             <form id="endorsementForm">
                 <div class="form-group"><label>Name</label><input type="text" id="name" required placeholder="John Doe"></div>
-                
                 <div class="form-group"><label>Role</label><input type="text" id="role" required placeholder="CEO at Acme"></div>
-
                 <div class="form-group">
                     <label>LinkedIn URL</label>
                     <input type="text" id="linkedin" required placeholder="linkedin.com/in/username">
                     <span id="urlError" class="error-text">Please provide a valid LinkedIn profile link.</span>
                 </div>
-
                 <div class="form-group"><label>Your Recommendation</label><textarea id="endorsement" required rows="4" placeholder="Describe your experience..."></textarea></div>
-                
                 <div class="form-group">
                     <label>Email (Private)</label>
                     <input type="email" id="email" required placeholder="name@email.com">
                     <span id="emailError" class="error-text">Please enter a valid email address.</span>
                 </div>
-                
                 <button type="submit" class="submit-btn" id="submitBtn">Submit Recommendation</button>
                 <div id="formMessage"></div>
             </form>
@@ -252,7 +211,7 @@
                 const data = await res.json();
                 
                 if (!data || data.length === 0) {
-                    track.innerHTML = `<p style="padding:40px; color:#999; text-align: center; width: 100%;">No endorsements yet.</p>`;
+                    track.innerHTML = `<p style="padding:40px; color:#999; text-align:center; width:100%;">No endorsements yet.</p>`;
                     track.classList.add('static');
                     return;
                 }
@@ -276,9 +235,9 @@
                     track.classList.add('static');
                     track.innerHTML = cardHtml;
                 } else {
-                    track.classList.remove('static');
                     track.innerHTML = cardHtml + cardHtml;
-                    initTouchScroll(track);
+                    // Wait one frame so the browser has rendered and scrollWidth is accurate
+                    requestAnimationFrame(() => initMarquee(track));
                 }
 
             } catch (e) {
@@ -287,67 +246,60 @@
             }
         }
 
-        /**
-         * Touch drag scrolling for the marquee on mobile.
-         * - Pauses the CSS animation on touch start.
-         * - Manually translates the track while the finger moves.
-         * - On release, resumes the animation from where the drag ended
-         *   by updating the animation-delay so there's no jump.
-         */
-        function initTouchScroll(track) {
+        function initMarquee(track) {
             const container = document.getElementById('marqueeContainer');
-            const totalWidth = track.scrollWidth / 2; // half because track is doubled
-            const duration = 50000; // ms — must match the CSS animation duration
+            // Half the total width = width of one full set of cards
+            const halfWidth = track.scrollWidth / 2;
+            const speed = 0.5; // px per frame — adjust to taste
 
-            let startX = 0;
-            let startOffset = 0;  // px offset at touch start
-            let currentOffset = 0;
+            let offset = 0;
+            let rafId = null;
+            let isPaused = false;
+
+            // --- RAF loop ---
+            function tick() {
+                if (!isPaused) {
+                    offset += speed;
+                    // When we've scrolled exactly one full set, reset silently
+                    if (offset >= halfWidth) offset -= halfWidth;
+                    track.style.transform = `translateX(${-offset}px)`;
+                }
+                rafId = requestAnimationFrame(tick);
+            }
+            rafId = requestAnimationFrame(tick);
+
+            // --- Desktop: pause on hover ---
+            container.addEventListener('mouseenter', () => { isPaused = true; });
+            container.addEventListener('mouseleave', () => { isPaused = false; });
+
+            // --- Mobile: drag to scroll ---
+            let touchStartX = 0;
+            let touchStartOffset = 0;
             let isDragging = false;
 
-            // Read the current visual position of the animation
-            function getCurrentOffset() {
-                const style = window.getComputedStyle(track);
-                const matrix = new DOMMatrix(style.transform);
-                return matrix.m41; // translateX value
-            }
-
             container.addEventListener('touchstart', (e) => {
-                if (track.classList.contains('static')) return;
                 isDragging = true;
-                startX = e.touches[0].clientX;
-                startOffset = getCurrentOffset();
-                track.classList.add('paused');
-                // Switch to manual transform so we can move it freely
-                track.style.transform = `translateX(${startOffset}px)`;
+                isPaused = true;
+                touchStartX = e.touches[0].clientX;
+                touchStartOffset = offset;
             }, { passive: true });
 
             container.addEventListener('touchmove', (e) => {
                 if (!isDragging) return;
-                const dx = e.touches[0].clientX - startX;
-                currentOffset = startOffset + dx;
-
-                // Wrap: keep offset within the first copy's width
-                currentOffset = ((currentOffset % totalWidth) - totalWidth) % totalWidth;
-
-                track.style.transform = `translateX(${currentOffset}px)`;
+                const dx = touchStartX - e.touches[0].clientX;
+                offset = touchStartOffset + dx;
+                // Keep within bounds of one set
+                offset = ((offset % halfWidth) + halfWidth) % halfWidth;
+                track.style.transform = `translateX(${-offset}px)`;
             }, { passive: true });
 
             container.addEventListener('touchend', () => {
-                if (!isDragging) return;
                 isDragging = false;
-
-                // Calculate where in the animation loop we are (0–1)
-                const progress = Math.abs(currentOffset) / totalWidth;
-                // Set a negative delay so the animation resumes from this position
-                const delay = -(progress * duration);
-
-                track.style.transform = '';
-                track.style.animationDelay = `${delay}ms`;
-                track.classList.remove('paused');
+                isPaused = false;
             });
         }
 
-        // Form Submission Logic
+        // Form Submission
         document.getElementById('endorsementForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -357,15 +309,11 @@
             const urlError = document.getElementById('urlError');
             
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                emailError.style.display = 'block';
-                return;
-            } else { emailError.style.display = 'none'; }
+            if (!emailRegex.test(email)) { emailError.style.display = 'block'; return; }
+            else { emailError.style.display = 'none'; }
 
-            if (!linkedin.toLowerCase().includes('linkedin.com')) {
-                urlError.style.display = 'block';
-                return;
-            } else { urlError.style.display = 'none'; }
+            if (!linkedin.toLowerCase().includes('linkedin.com')) { urlError.style.display = 'block'; return; }
+            else { urlError.style.display = 'none'; }
 
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
