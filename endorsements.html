@@ -44,14 +44,17 @@
             border-top: 1px solid var(--border);
             border-bottom: 1px solid var(--border);
             margin: 40px 0;
-            display: flex;
-            justify-content: center;
+            /* Prevent the page from scrolling horizontally when swiping the marquee */
+            touch-action: pan-y;
         }
 
         .marquee-track {
             display: flex;
             width: max-content;
             animation: scroll 50s linear infinite;
+            /* Prevent text selection while swiping */
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         .marquee-track.static {
@@ -61,6 +64,11 @@
             flex-wrap: wrap;
         }
 
+        .marquee-track.paused {
+            animation-play-state: paused;
+        }
+
+        /* Desktop hover pause */
         .marquee-track:not(.static):hover {
             animation-play-state: paused;
         }
@@ -82,6 +90,8 @@
             flex-direction: column;
             align-items: center;
             text-align: center;
+            /* Prevent cards from acting as drag targets */
+            -webkit-tap-highlight-color: transparent;
         }
         
         .endorsement-header { 
@@ -174,6 +184,7 @@
         @media (max-width: 768px) {
             .endorsement-item { flex: 0 0 85vw; margin: 10px; padding: 25px; }
             .hero h1 { font-size: 2.5em; }
+            .marquee-container { padding: 40px 0; }
         }
     </style>
 </head>
@@ -184,7 +195,7 @@
         <p>Insights and feedback from professional collaborators.</p>
     </section>
 
-    <div class="marquee-container">
+    <div class="marquee-container" id="marqueeContainer">
         <div id="marqueeTrack" class="marquee-track"></div>
     </div>
 
@@ -267,12 +278,73 @@
                 } else {
                     track.classList.remove('static');
                     track.innerHTML = cardHtml + cardHtml;
+                    initTouchScroll(track);
                 }
 
             } catch (e) {
                 track.innerHTML = `<p style="padding:20px;">Error connecting.</p>`;
                 track.classList.add('static');
             }
+        }
+
+        /**
+         * Touch drag scrolling for the marquee on mobile.
+         * - Pauses the CSS animation on touch start.
+         * - Manually translates the track while the finger moves.
+         * - On release, resumes the animation from where the drag ended
+         *   by updating the animation-delay so there's no jump.
+         */
+        function initTouchScroll(track) {
+            const container = document.getElementById('marqueeContainer');
+            const totalWidth = track.scrollWidth / 2; // half because track is doubled
+            const duration = 50000; // ms — must match the CSS animation duration
+
+            let startX = 0;
+            let startOffset = 0;  // px offset at touch start
+            let currentOffset = 0;
+            let isDragging = false;
+
+            // Read the current visual position of the animation
+            function getCurrentOffset() {
+                const style = window.getComputedStyle(track);
+                const matrix = new DOMMatrix(style.transform);
+                return matrix.m41; // translateX value
+            }
+
+            container.addEventListener('touchstart', (e) => {
+                if (track.classList.contains('static')) return;
+                isDragging = true;
+                startX = e.touches[0].clientX;
+                startOffset = getCurrentOffset();
+                track.classList.add('paused');
+                // Switch to manual transform so we can move it freely
+                track.style.transform = `translateX(${startOffset}px)`;
+            }, { passive: true });
+
+            container.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                const dx = e.touches[0].clientX - startX;
+                currentOffset = startOffset + dx;
+
+                // Wrap: keep offset within the first copy's width
+                currentOffset = ((currentOffset % totalWidth) - totalWidth) % totalWidth;
+
+                track.style.transform = `translateX(${currentOffset}px)`;
+            }, { passive: true });
+
+            container.addEventListener('touchend', () => {
+                if (!isDragging) return;
+                isDragging = false;
+
+                // Calculate where in the animation loop we are (0–1)
+                const progress = Math.abs(currentOffset) / totalWidth;
+                // Set a negative delay so the animation resumes from this position
+                const delay = -(progress * duration);
+
+                track.style.transform = '';
+                track.style.animationDelay = `${delay}ms`;
+                track.classList.remove('paused');
+            });
         }
 
         // Form Submission Logic
@@ -284,14 +356,12 @@
             const emailError = document.getElementById('emailError');
             const urlError = document.getElementById('urlError');
             
-            // 1. Email Validation
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
                 emailError.style.display = 'block';
                 return;
             } else { emailError.style.display = 'none'; }
 
-            // 2. Simplified LinkedIn Check
             if (!linkedin.toLowerCase().includes('linkedin.com')) {
                 urlError.style.display = 'block';
                 return;
