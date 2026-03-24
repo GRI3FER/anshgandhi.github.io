@@ -34,6 +34,7 @@
         .header h1 { font-size: 2.2em; font-weight: 800; color: var(--primary); letter-spacing: -0.03em; }
         .header p { color: var(--text-muted); margin-top: 8px; }
 
+        /* --- Tab System --- */
         .tab-buttons { 
             display: flex; 
             justify-content: center; 
@@ -63,6 +64,7 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
+        /* --- Application Cards --- */
         .endorsement-item { 
             background: var(--card-bg); 
             border: 1px solid var(--border); 
@@ -88,51 +90,6 @@
             line-height: 1.7;
         }
 
-        /* Photo URL row - shown only on pending cards */
-        .photo-url-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
-            background: #f8faff;
-            border: 1px solid #dbeafe;
-            border-radius: 12px;
-            padding: 14px 18px;
-        }
-
-        .photo-url-row label {
-            font-size: 0.8em;
-            font-weight: 700;
-            color: var(--accent);
-            white-space: nowrap;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .photo-url-row input {
-            flex: 1;
-            border: none;
-            background: transparent;
-            font-size: 0.9em;
-            color: var(--text-main);
-            outline: none;
-        }
-
-        .photo-url-row input::placeholder {
-            color: #9ca3af;
-        }
-
-        /* Live preview of the photo */
-        .photo-preview {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #dbeafe;
-            display: none;
-            flex-shrink: 0;
-        }
-
         .actions { display: flex; justify-content: center; gap: 12px; }
         .btn { 
             padding: 12px 24px; border-radius: 10px; font-size: 0.9em; 
@@ -144,6 +101,7 @@
         .btn-delete { background: white; color: var(--text-muted); border-color: var(--border); }
         .btn:hover { transform: translateY(-1px); opacity: 0.9; }
 
+        /* --- UI States --- */
         .section-hidden { display: none; }
         
         .auth-modal { position: fixed; inset: 0; background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
@@ -153,30 +111,6 @@
 
         .message { padding: 15px; border-radius: 12px; margin-bottom: 20px; font-weight: 700; display: inline-block; }
         .success { background: #d1fae5; color: #065f46; }
-
-        /* Approved card photo thumbnail */
-        .approved-photo {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--border);
-            margin-bottom: 10px;
-        }
-
-        .initials-badge {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: var(--primary);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 1em;
-            margin: 0 auto 10px;
-        }
     </style>
 </head>
 <body>
@@ -230,6 +164,7 @@
             location.reload();
         }
 
+        // --- TAB TOGGLE LOGIC ---
         function showTab(tab) {
             const pendingSection = document.getElementById('pendingSection');
             const approvedSection = document.getElementById('approvedSection');
@@ -262,14 +197,12 @@
                 if (res.status === 401) { localStorage.removeItem('adminKey'); location.reload(); }
                 
                 let data = await res.json();
+                
+                // SORT BY DATE: Newest First
                 data.sort((a, b) => new Date(b.submittedDate) - new Date(a.submittedDate));
 
                 renderList(status === 'pending' ? 'pendingList' : 'approvedList', data, status === 'pending');
             } catch (e) { console.error(e); }
-        }
-
-        function getInitials(name) {
-            return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
         }
 
         function renderList(containerId, data, isPending) {
@@ -279,100 +212,38 @@
                 return;
             }
 
-            container.innerHTML = data.map(item => {
-                const initials = getInitials(item.name);
-
-                // For approved cards: show existing photo or initials badge
-                const approvedAvatar = item.photo_url
-                    ? `<img src="${escapeHtml(item.photo_url)}" class="approved-photo" onerror="this.style.display='none'" />`
-                    : `<div class="initials-badge">${initials}</div>`;
-
-                return `
-                <div class="endorsement-item" id="card-${item._id}">
+            container.innerHTML = data.map(item => `
+                <div class="endorsement-item">
                     <div class="author-info">
-                        ${!isPending ? approvedAvatar : ''}
                         <h3>${escapeHtml(item.name)}</h3>
                         <div class="role">${escapeHtml(item.role)}</div>
                         <div class="meta">${new Date(item.submittedDate).toLocaleDateString()} • ${escapeHtml(item.email)}</div>
                     </div>
                     <div class="endorsement-text">"${escapeHtml(item.endorsement)}"</div>
-
-                    ${isPending ? `
-                        <div class="photo-url-row">
-                            <label>Photo URL</label>
-                            <input
-                                type="url"
-                                id="photo-${item._id}"
-                                placeholder="Paste an image link (optional)"
-                                oninput="previewPhoto('${item._id}')"
-                            />
-                            <img id="preview-${item._id}" class="photo-preview" alt="preview" />
-                        </div>
-                    ` : ''}
-
                     <div class="actions">
                         ${isPending ? `
-                            <button class="btn btn-approve" onclick="handleApprove('${item._id}')">Approve</button>
+                            <button class="btn btn-approve" onclick="handleAction('${item._id}', 'approve')">Approve</button>
                             <button class="btn btn-reject" onclick="handleAction('${item._id}', 'delete')">Reject</button>
                         ` : `
                             <button class="btn btn-delete" onclick="handleAction('${item._id}', 'delete')">Remove</button>
                         `}
                     </div>
                 </div>
-            `}).join('');
-        }
-
-        // Live photo preview as admin types/pastes the URL
-        function previewPhoto(id) {
-            const input = document.getElementById(`photo-${id}`);
-            const preview = document.getElementById(`preview-${id}`);
-            const url = input.value.trim();
-
-            if (url) {
-                preview.src = url;
-                preview.style.display = 'block';
-                preview.onerror = () => { preview.style.display = 'none'; };
-            } else {
-                preview.style.display = 'none';
-            }
-        }
-
-        // Approve with optional photo URL
-        async function handleApprove(id) {
-            const photoInput = document.getElementById(`photo-${id}`);
-            const photoUrl = photoInput ? photoInput.value.trim() : '';
-
-            try {
-                const res = await fetch(`${API_URL}/api/admin/approve?id=${id}`, {
-                    method: 'POST',
-                    headers: {
-                        'X-Admin-Key': adminKey,
-                        'Content-Type': 'application/json'
-                    },
-                    // Send photo_url in body so backend can store it
-                    body: JSON.stringify({ photo_url: photoUrl || null })
-                });
-                if (res.ok) {
-                    showMsg('Recommendation Approved ✓');
-                    loadAll();
-                } else {
-                    alert('Approval failed');
-                }
-            } catch (e) {
-                alert('Action failed');
-            }
+            `).join('');
         }
 
         async function handleAction(id, type) {
             if (type === 'delete' && !confirm('Are you sure you want to delete this?')) return;
+            const endpoint = type === 'approve' ? 'approve' : 'delete';
+            const method = type === 'approve' ? 'POST' : 'DELETE';
 
             try {
-                const res = await fetch(`${API_URL}/api/admin/delete?id=${id}`, {
-                    method: 'DELETE',
+                const res = await fetch(`${API_URL}/api/admin/${endpoint}?id=${id}`, {
+                    method: method,
                     headers: { 'X-Admin-Key': adminKey }
                 });
                 if (res.ok) {
-                    showMsg('Deleted Successfully');
+                    showMsg(type === 'approve' ? 'Recommendation Approved' : 'Deleted Successfully');
                     loadAll();
                 }
             } catch (e) { alert('Action failed'); }
@@ -385,7 +256,6 @@
         }
 
         function escapeHtml(text) {
-            if (!text) return '';
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
