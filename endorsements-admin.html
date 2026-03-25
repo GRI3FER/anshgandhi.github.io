@@ -4,27 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - Endorsements</title>
+    <link rel="icon" href="A.png">
+    <link rel="stylesheet" href="style.css">
     <style>
         :root {
-            --primary: #111827; 
-            --accent: #3b82f6;  
-            --bg: #f9fafb;
+            --primary: var(--text-main); 
+            --accent: var(--accent-blue);  
             --card-bg: #ffffff;
-            --text-main: #1f2937;
-            --text-muted: #6b7280;
-            --border: #e5e7eb;
+            --text-muted: var(--text-sub);
+            --border: rgba(12, 30, 60, 0.12);
             --success: #10b981;
             --danger: #ef4444;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
-            font-family: 'Inter', -apple-system, sans-serif; 
             line-height: 1.6; 
             color: var(--text-main); 
-            background: var(--bg); 
             min-height: 100vh;
-            padding: 60px 20px;
+            padding: 0 20px 60px;
             text-align: center;
         }
 
@@ -111,9 +108,37 @@
 
         .message { padding: 15px; border-radius: 12px; margin-bottom: 20px; font-weight: 700; display: inline-block; }
         .success { background: #d1fae5; color: #065f46; }
+
+        @media (max-width: 768px) {
+            nav .nav-links {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            nav .nav-links a {
+                font-size: 0.9rem;
+                padding: 8px 12px;
+            }
+            .actions {
+                flex-wrap: wrap;
+            }
+            .endorsement-item {
+                padding: 28px 20px;
+            }
+        }
     </style>
 </head>
 <body>
+
+    <nav>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="experience.html">Experience</a>
+            <a href="endorsements.html" class="active">Endorsements</a>
+            <a href="projects.html">Projects</a>
+            <a href="education.html">Education</a>
+        </div>
+    </nav>
 
     <div id="authModal" class="auth-modal">
         <div class="auth-card">
