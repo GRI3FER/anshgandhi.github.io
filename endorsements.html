@@ -35,12 +35,12 @@
         .marquee-container {
             width: 100%;
             overflow: hidden;
-            padding: 80px 0;
+            padding: 28px 0;
             position: relative;
             background: #fafafa;
             border-top: 1px solid var(--border);
             border-bottom: 1px solid var(--border);
-            margin: 40px 0;
+            margin: 16px 0;
             touch-action: pan-y;
             cursor: grab;
         }
@@ -66,11 +66,11 @@
 
         .endorsement-item { 
             flex: 0 0 560px;
-            margin: 15px 20px;
+            margin: 8px 16px;
             background: var(--card-bg); 
             border: 1px solid var(--border);
             border-radius: 24px; 
-            padding: 40px;
+            padding: 26px;
             box-shadow: 0 10px 15px -3px rgba(0,0,0,0.04);
             display: flex;
             flex-direction: column;
@@ -118,7 +118,7 @@
             font-style: italic;
         }
         
-        .bottom-cta { text-align: center; padding: 40px 20px 100px; width: 100%; }
+        .bottom-cta { text-align: center; padding: 46px 20px 40px; width: 100%; }
         .cta-button { 
             background: var(--primary); color: white; border: none; 
             padding: 20px 40px; border-radius: 16px; font-size: 1.1em; 
@@ -165,9 +165,10 @@
                 font-size: 0.9rem;
                 padding: 8px 12px;
             }
-            .endorsement-item { flex: 0 0 85vw; margin: 10px; padding: 25px; }
+            .endorsement-item { flex: 0 0 85vw; margin: 8px; padding: 20px; }
             .hero h1 { font-size: 2.5em; }
-            .marquee-container { padding: 40px 0; }
+            .marquee-container { padding: 22px 0; margin: 12px 0; }
+            .bottom-cta { padding: 30px 16px 28px; }
         }
     </style>
 </head>
@@ -182,17 +183,12 @@
         </div>
     </nav>
 
-    <section class="hero">
-        <h1>Professional Endorsements</h1>
-        <p>Insights and feedback from professional collaborators.</p>
-    </section>
-
     <div class="marquee-container" id="marqueeContainer">
         <div id="marqueeTrack" class="marquee-track"></div>
     </div>
 
     <section class="bottom-cta">
-        <button class="cta-button" onclick="openModal()">Provide a Recommendation</button>
+        <button class="cta-button" onclick="openModal()">Provide an Endorsement</button>
     </section>
 
     <div id="submissionModal" class="modal">
@@ -368,6 +364,9 @@
         // Form Submission
         document.getElementById('endorsementForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            const form = document.getElementById('endorsementForm');
+            const ownerNotificationEmail = 'anshgandhi06@gmail.com';
             
             const email = document.getElementById('email').value;
             const linkedin = document.getElementById('linkedin').value;
@@ -391,7 +390,9 @@
                 relationship: 'Professional',
                 linkedin: linkedin,
                 endorsement: document.getElementById('endorsement').value,
-                email: email
+                email: email,
+                notifyEmail: ownerNotificationEmail,
+                ownerEmail: ownerNotificationEmail
             };
 
             try {
@@ -401,8 +402,13 @@
                     body: JSON.stringify(payload)
                 });
                 if (res.ok) {
+                    form.reset();
+                    emailError.style.display = 'none';
+                    urlError.style.display = 'none';
                     document.getElementById('formMessage').innerHTML = '<p style="color:#22c55e; margin-top:15px; font-weight:600;">✓ Success! Pending approval.</p>';
                     setTimeout(closeModal, 2500);
+                } else {
+                    document.getElementById('formMessage').innerHTML = '<p style="color:#ef4444; margin-top:15px; font-weight:600;">Submission failed. Please try again.</p>';
                 }
             } catch (err) {
                 document.getElementById('formMessage').innerHTML = '<p style="color:#ef4444; margin-top:15px; font-weight:600;">Server error.</p>';
