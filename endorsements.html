@@ -45,6 +45,11 @@
             border-bottom: 1px solid var(--border);
             margin: 40px 0;
             touch-action: pan-y;
+            cursor: grab;
+        }
+
+        .marquee-container.dragging {
+            cursor: grabbing;
         }
 
         .marquee-track {
@@ -59,6 +64,7 @@
             width: 100%;
             justify-content: center;
             flex-wrap: wrap;
+            cursor: default;
         }
 
         .endorsement-item { 
@@ -74,8 +80,15 @@
             align-items: center;
             text-align: center;
             -webkit-tap-highlight-color: transparent;
+            /* Prevent cards from blocking drag events */
+            pointer-events: none;
         }
-        
+
+        /* Re-enable pointer events only for links inside cards */
+        .endorsement-item a {
+            pointer-events: auto;
+        }
+
         .endorsement-header { 
             display: flex; 
             flex-direction: column; 
@@ -236,7 +249,6 @@
                     track.innerHTML = cardHtml;
                 } else {
                     track.innerHTML = cardHtml + cardHtml;
-                    // Wait one frame so the browser has rendered and scrollWidth is accurate
                     requestAnimationFrame(() => initMarquee(track));
                 }
 
@@ -248,54 +260,93 @@
 
         function initMarquee(track) {
             const container = document.getElementById('marqueeContainer');
-            // Half the total width = width of one full set of cards
             const halfWidth = track.scrollWidth / 2;
-            const speed = 0.5; // px per frame — adjust to taste
+            const autoSpeed = 0.5;   // px/frame when auto-scrolling
+            const dragDecay = 0.92;  // momentum friction (0–1, lower = stops faster)
 
             let offset = 0;
-            let rafId = null;
-            let isPaused = false;
-
-            // --- RAF loop ---
-            function tick() {
-                if (!isPaused) {
-                    offset += speed;
-                    // When we've scrolled exactly one full set, reset silently
-                    if (offset >= halfWidth) offset -= halfWidth;
-                    track.style.transform = `translateX(${-offset}px)`;
-                }
-                rafId = requestAnimationFrame(tick);
-            }
-            rafId = requestAnimationFrame(tick);
-
-            // --- Desktop: pause on hover ---
-            container.addEventListener('mouseenter', () => { isPaused = true; });
-            container.addEventListener('mouseleave', () => { isPaused = false; });
-
-            // --- Mobile: drag to scroll ---
-            let touchStartX = 0;
-            let touchStartOffset = 0;
             let isDragging = false;
+            let dragStartX = 0;
+            let dragStartOffset = 0;
+            let velocity = 0;        // px/frame momentum after release
+            let lastX = 0;
+            let lastTime = 0;
 
+            function clamp(val) {
+                return ((val % halfWidth) + halfWidth) % halfWidth;
+            }
+
+            function tick() {
+                if (isDragging) {
+                    // While dragging: track is controlled by pointer/touch events
+                } else if (Math.abs(velocity) > 0.1) {
+                    // Momentum: coast to a stop after drag release
+                    offset = clamp(offset + velocity);
+                    velocity *= dragDecay;
+                } else {
+                    // Auto-scroll
+                    velocity = 0;
+                    offset = clamp(offset + autoSpeed);
+                }
+                track.style.transform = `translateX(${-offset}px)`;
+                requestAnimationFrame(tick);
+            }
+            requestAnimationFrame(tick);
+
+            // ── Mouse drag (desktop) ──────────────────────────────────
+            container.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                dragStartX = e.clientX;
+                dragStartOffset = offset;
+                lastX = e.clientX;
+                lastTime = performance.now();
+                velocity = 0;
+                container.classList.add('dragging');
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const dx = dragStartX - e.clientX;
+                offset = clamp(dragStartOffset + dx);
+
+                // Track velocity for momentum
+                const now = performance.now();
+                const dt = now - lastTime || 1;
+                velocity = (e.clientX - lastX) / dt * -16; // scale to ~px/frame
+                lastX = e.clientX;
+                lastTime = now;
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (!isDragging) return;
+                isDragging = false;
+                container.classList.remove('dragging');
+            });
+
+            // ── Touch drag (mobile) ───────────────────────────────────
             container.addEventListener('touchstart', (e) => {
                 isDragging = true;
-                isPaused = true;
-                touchStartX = e.touches[0].clientX;
-                touchStartOffset = offset;
+                dragStartX = e.touches[0].clientX;
+                dragStartOffset = offset;
+                lastX = e.touches[0].clientX;
+                lastTime = performance.now();
+                velocity = 0;
             }, { passive: true });
 
             container.addEventListener('touchmove', (e) => {
                 if (!isDragging) return;
-                const dx = touchStartX - e.touches[0].clientX;
-                offset = touchStartOffset + dx;
-                // Keep within bounds of one set
-                offset = ((offset % halfWidth) + halfWidth) % halfWidth;
-                track.style.transform = `translateX(${-offset}px)`;
+                const dx = dragStartX - e.touches[0].clientX;
+                offset = clamp(dragStartOffset + dx);
+
+                const now = performance.now();
+                const dt = now - lastTime || 1;
+                velocity = (e.touches[0].clientX - lastX) / dt * -16;
+                lastX = e.touches[0].clientX;
+                lastTime = now;
             }, { passive: true });
 
             container.addEventListener('touchend', () => {
                 isDragging = false;
-                isPaused = false;
             });
         }
 
