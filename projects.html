@@ -16,6 +16,23 @@
             padding: 15px 0;
         }
 
+        /* Keep project card spacing consistent across all sections */
+        .exp-container {
+            display: flex;
+            flex-direction: column;
+            gap: 90px;
+            padding-bottom: 0;
+            margin-bottom: 90px;
+        }
+
+        .exp-container:last-of-type {
+            margin-bottom: 0;
+        }
+
+        .project-card {
+            margin: 0;
+        }
+
         /* Optional: ensure body has no scrollbars from arrow keys */
         html, body {
             overflow-x: hidden;
@@ -67,10 +84,16 @@
 
             .exp-container {
                 padding: 10px;
+                gap: 15px;
+                margin-bottom: 15px;
             }
 
             .exp-card {
                 margin: 15px 0;
+            }
+
+            .project-card {
+                margin: 0 !important;
             }
 
             .modal-card {
@@ -223,6 +246,18 @@
             </ul>
             <div style="display:flex; justify-content:center; padding: 10px 0 20px;">
                 <a href="https://github.com/GRI3FER/AgenticBuild" target="_blank" style="display:inline-block; padding:10px 24px; border:2px solid var(--accent-blue); border-radius:6px; color:var(--accent-blue); font-weight:700; font-size:0.9rem; text-decoration:none; transition:opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">View on GitHub →</a>
+            </div>
+        </div>
+
+        <div class="exp-card project-card">
+            <div class="exp-content">
+                <h3>Budget Tracking App</h3>
+            </div>
+            <ul style="list-style: none; padding: 15px; margin: 0;">
+                <li>• Mobile app to help you budget and track daily expenses</li>
+            </ul>
+            <div style="display:flex; justify-content:center; padding: 10px 0 20px;">
+                <a href="https://github.com/GRI3FER/PhoneApp" target="_blank" style="display:inline-block; padding:10px 24px; border:2px solid var(--accent-blue); border-radius:6px; color:var(--accent-blue); font-weight:700; font-size:0.9rem; text-decoration:none; transition:opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">View on GitHub →</a>
             </div>
         </div>
     </main>
