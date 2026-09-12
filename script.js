@@ -32,4 +32,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    document.querySelectorAll('.education-flip-card').forEach((educationCard) => {
+        const toggleEducationCard = () => {
+            educationCard.classList.toggle('flipped');
+        };
+
+        educationCard.addEventListener('click', toggleEducationCard);
+        educationCard.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                toggleEducationCard();
+            }
+        });
+    });
 });

@@ -148,7 +148,7 @@ nav { padding: 33.33px 0; display: flex; justify-content: center; width: 100%; }
 .hero-text h1 { font-family: 'Space Grotesk'; font-size: 6.5rem; line-height: 1; color: var(--text-main); text-align: left; }
 
 /* Experience Layout */
-.exp-container { max-width: 1000px; margin: 0 auto; padding-bottom: 15vh; }
+.exp-container { max-width: 1050px; margin: 0 auto; padding-bottom: 15vh; }
 .exp-card {
     background: rgba(255, 255, 255, 0.6);
     backdrop-filter: blur(5px);
@@ -173,7 +173,8 @@ nav { padding: 33.33px 0; display: flex; justify-content: center; width: 100%; }
     color: var(--accent-blue); text-transform: uppercase; 
     margin-bottom: 5px; display: block;
 }
-.exp-content h3 { font-size: 2rem; margin-bottom: 5px; font-weight: 800; }
+.exp-content .role-title { font-size: 2rem; }
+.exp-content h3 { font-size: 1.5rem; margin-bottom: 5px; font-weight: 800; }
 .exp-content .date { font-weight: 600; color: var(--text-sub); margin-bottom: 20px; }
 .exp-content ul { text-align: left; align-self: flex-start; margin-top: 15px; }
 

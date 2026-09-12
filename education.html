@@ -8,6 +8,116 @@
     <title>Ansh Gandhi | Education</title>
     <link rel="stylesheet" href="style.css">
     <style>
+        .education-flip-card {
+            min-height: 520px;
+            padding: 0;
+            perspective: 1000px;
+            cursor: pointer;
+            background: transparent !important;
+            border: 0;
+            box-shadow: none;
+        }
+
+        .education-card-inner {
+            position: relative;
+            width: 100%;
+            min-height: 520px;
+            transform-style: preserve-3d;
+            transition: transform 0.6s ease;
+        }
+
+        .education-flip-card.flipped .education-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .education-card-face {
+            position: absolute;
+            inset: 0;
+            min-height: 520px;
+            padding: 3%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border: 4px solid white;
+            border-radius: 30px;
+            box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .nyu-box .education-card-face {
+            background: rgba(87, 6, 140, 0.1);
+        }
+
+        .cmu-box .education-card-face {
+            background: rgba(196, 18, 48, 0.1);
+        }
+
+        .education-card-front h2 {
+            font-size: 2rem;
+            line-height: 1.15;
+            max-width: 100%;
+        }
+
+        .education-card-front .school-unit {
+            margin: -4px 0 12px;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .education-card-back {
+            transform: rotateY(180deg);
+            text-align: center;
+        }
+
+        .education-card-back h2 {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .education-card-back ul {
+            width: 100%;
+            padding: 0;
+            margin: 0;
+            line-height: 1.7;
+            list-style: none;
+        }
+
+        .education-card-back li {
+            display: inline;
+        }
+
+        .education-card-back li:not(:last-child)::after {
+            content: " | ";
+        }
+
+        .education-card-back.nyu-coursework,
+        .education-card-back.nyu-coursework h2 {
+            color: var(--nyu-violet);
+        }
+
+        .education-card-back.cmu-coursework,
+        .education-card-back.cmu-coursework h2 {
+            color: var(--cmu-red);
+        }
+
+        .education-flip-card:hover {
+            animation: education-card-jiggle 0.55s ease-in-out;
+        }
+
+        .education-flip-card:focus-visible {
+            outline: 4px solid var(--accent-blue);
+            outline-offset: 6px;
+        }
+
+        @keyframes education-card-jiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(1deg); }
+            50% { transform: rotate(-1deg); }
+            75% { transform: rotate(0.6deg); }
+        }
+
         /* Mobile Responsiveness */
         @media (max-width: 768px) {
             .edu-grid {
@@ -18,6 +128,18 @@
 
             .edu-card {
                 padding: 30px 20px;
+            }
+
+            .education-flip-card {
+                padding: 0;
+            }
+
+            .education-card-face {
+                padding: 30px 20px;
+            }
+
+            .education-card-front h2 {
+                font-size: 1.5rem;
             }
 
             .edu-card span {
@@ -94,6 +216,18 @@
                 padding: 25px 15px;
             }
 
+            .education-flip-card {
+                padding: 0;
+            }
+
+            .education-card-face {
+                padding: 25px 15px;
+            }
+
+            .education-card-front h2 {
+                font-size: 1.3rem;
+            }
+
             .edu-card span {
                 font-size: 14px !important;
                 letter-spacing: 2px !important;
@@ -132,56 +266,73 @@
 </head>
 <body>
     <nav>
-        <div class="nav-links"><a href="index.html">Home</a><a href="education.html" class="active">Education</a><a href="experience.html">Experience</a><a href="endorsements.html">Endorsements</a><a href="projects.html">Projects</a></div>
+        <div class="nav-links"><a href="index.html">Home</a><a href="education.html" class="active">Education</a><a href="experience.html">Experience</a><!-- <a href="endorsements.html">Endorsements</a> --><a href="projects.html">Projects</a></div>
     </nav>
 
     <main class="edu-grid">
-        <div class="edu-card nyu-box">
-            <span style="font-weight:800; font-size:20px; color:var(--nyu-violet); letter-spacing: 5px; display:block; margin-bottom:10px;">NYU SHANGHAI</span>
-            <br><br>
-            <img src="https://i.imghippo.com/files/fey1706cSc.png" style="width: 160px; height: 160px; object-fit: contain;" alt="NYU Shanghai Logo">
-            <h2>B.A. in Business <br> and Finance</h2>
-            
-            <p style="font-size:1.8rem; font-weight:800;">GPA: 3.88</p>
-            <p style="margin: 5px 0; font-size:25px;">2024 - 2025</p>
+        <div class="edu-card education-flip-card nyu-box" tabindex="0" role="button" aria-label="Flip NYU Shanghai education card to view coursework">
+            <div class="education-card-inner">
+                <div class="education-card-face education-card-front">
+                    <span style="font-weight:800; font-size:20px; color:var(--nyu-violet); letter-spacing: 5px; display:block; margin-bottom:10px;">NYU SHANGHAI</span>
+                    <img src="https://i.imghippo.com/files/fey1706cSc.png" style="width: 160px; height: 160px; object-fit: contain;" alt="NYU Shanghai Logo">
+                    <h2>B.A. in Business Administration <br> and Finance</h2>
+                    <p class="school-unit">&nbsp;</p>
+                    <p style="font-size:1.8rem; font-weight:800;">GPA: 3.88</p>
+                    <p style="margin: 5px 0; font-size:25px;">August 2024 - May 2025</p>
+                    <p>Dean's List: December 2024 and May 2025</p>
+                </div>
+                <div class="education-card-face education-card-back nyu-coursework">
+                    <h2>Coursework</h2>
+                    <ul>
+                        <li>Financial Accounting</li>
+                        <li>Microeconomics</li>
+                        <li>Chinese I &amp; II</li>
+                    </ul>
+                    <h2>Clubs</h2>
+                    <ul>
+                        <li>Economics Society</li>
+                        <li>TAMID</li>
+                        <li>Undergraduate Business Association</li>
+                    </ul>
+                </div>
+            </div>
         </div>
 
-        <div class="edu-card cmu-box">
-            <span style="font-weight:800; font-size:20px; color:var(--cmu-red); letter-spacing: 5px; display:block; margin-bottom:10px;">CARNEGIE MELLON UNIVERSITY</span>
-            <br><br>
-            <img src="https://wp.logos-download.com/wp-content/uploads/2019/11/Carnegie_Mellon_University_Logo_full-700x700.png" style="width: 160px; height: 160px; object-fit: contain;" alt="CMU Logo">
-            <h2>B.S. in Business Administration</h2>
-            <p style="font-size:1.8rem; font-weight:800;">GPA: 3.88</p>
-            <p style="margin: 5px 0; font-size:25px;">2025 - Present</p>
+        <div class="edu-card education-flip-card cmu-box" tabindex="0" role="button" aria-label="Flip Carnegie Mellon education card to view coursework">
+            <div class="education-card-inner">
+                <div class="education-card-face education-card-front">
+                    <span style="font-weight:800; font-size:20px; color:var(--cmu-red); letter-spacing: 5px; display:block; margin-bottom:10px;">CARNEGIE MELLON UNIVERSITY</span>
+                    <img src="https://wp.logos-download.com/wp-content/uploads/2019/11/Carnegie_Mellon_University_Logo_full-700x700.png" style="width: 160px; height: 160px; object-fit: contain;" alt="Carnegie Mellon University Logo">
+                    <h2>B.S. in Business Administration <br> with an Additional in Statistics and Machine Learning</h2>
+                    <p style="font-size:1.8rem; font-weight:800;">GPA: 3.88</p>
+                    <p style="margin: 5px 0; font-size:25px;">August 2025 - May 2028</p>
+                    <p>Tepper Dean's List: December 2025 and May 2026</p>
+                </div>
+                <div class="education-card-face education-card-back cmu-coursework">
+                    <h2>Coursework</h2>
+                    <ul>
+                        <li>Business Optimization</li>
+                        <li>Finance</li>
+                        <li>Marketing</li>
+                        <li>Macroeconomics</li>
+                        <li>Data Mining &amp; Analytics</li>
+                        <li>Data Management Fundamentals</li>
+                        <li>Matrix Algebra</li>
+                        <li>Concepts of Mathematics</li>
+                        <li>Principles of Imperative Computation</li>
+                        <li>Effective Coding with AI</li>
+                    </ul>
+                    <h2>Clubs</h2>
+                    <ul>
+                        <li>CMU Moon Miners</li>
+                        <li>Tepper AI Club</li>
+                        <li>Tisbert Sketch Comedy</li>
+                        <li>Transfer Student Organization</li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </main>
-
-    <section style="max-width: 90%; margin: 5vh auto; padding-bottom: 20vh;">
-        <h2 style="font-family: 'Space Grotesk'; font-size: 3rem; color: var(--text-main); margin-bottom: 20px; text-align: center;">Relevant Coursework</h2>
-        <p style="font-size: 1.3rem; text-align: center; line-height: 1.8;">
-            <span style="color: var(--nyu-violet); font-weight: 700;">Financial Accounting</span>
-            <span style="margin: 0 10px;">  </span>
-            <span style="color: var(--nyu-violet); font-weight: 700;">Intermediate Microeconomics</span>
-            <span style="margin: 0 10px;">  </span>
-            <span style="color: var(--nyu-violet); font-weight: 700;">Chinese I & II</span>
-            <br>
-            <span style="color: var(--cmu-red); font-weight: 700;">Finance</span>
-            <span style="margin: 0 10px;">  </span>
-            <span style="color: var(--cmu-red); font-weight: 700;">Business Computing</span>
-            <span style="margin: 0 10px;">  </span>
-            <span style="color: var(--cmu-red); font-weight: 700;">Concepts of Mathematics</span>
-            <span style="margin: 0 10px;">  </span>
-            <span style="color: var(--cmu-red); font-weight: 700;">Regression Analysis</span>
-            <span style="margin: 0 10px;">  </span>
-            <span style="color: var(--cmu-red); font-weight: 700;">Fundamentals of Programming</span>
-            <span style="margin: 0 10px;">  </span>
-            <span style="color: var(--cmu-red); font-weight: 700;">Data Mining & Business Analytics</span>
-            <span style="margin: 0 10px;">  </span>
-            <span style="color: var(--cmu-red); font-weight: 700;">Effective Coding with AI</span>
-            <span style="margin: 0 10px;">  </span>
-            <span style="color: var(--cmu-red); font-weight: 700;">Matrix Algebra</span>
-        </p>
-    </section>
     <script src="script.js"></script>
 </body>
 </html>
