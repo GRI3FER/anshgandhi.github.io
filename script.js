@@ -1,3 +1,17 @@
+const ENDORSEMENTS_API_URL = 'https://recommendations-backend-seven.vercel.app';
+
+function warmEndorsementsConnection() {
+    if (window.location.pathname.endsWith('/endorsements.html')) return;
+
+    fetch(`${ENDORSEMENTS_API_URL}/api/endorsements`, {
+        method: 'GET',
+        cache: 'no-store',
+        keepalive: true
+    }).catch(() => {});
+}
+
+warmEndorsementsConnection();
+
 document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('modal');
     const openBtn = document.getElementById('openModal');

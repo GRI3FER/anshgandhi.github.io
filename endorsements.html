@@ -192,7 +192,14 @@
     </nav>
 
     <div class="marquee-container" id="marqueeContainer">
-        <div id="marqueeTrack" class="marquee-track"></div>
+        <div id="marqueeTrack" class="marquee-track">
+            <div class="endorsement-item loading-card">Loading endorsements...</div>
+            <div class="endorsement-item loading-card">Loading endorsements...</div>
+            <div class="endorsement-item loading-card">Loading endorsements...</div>
+            <div class="endorsement-item loading-card">Loading endorsements...</div>
+            <div class="endorsement-item loading-card">Loading endorsements...</div>
+            <div class="endorsement-item loading-card">Loading endorsements...</div>
+        </div>
     </div>
 
     <section class="bottom-cta">
@@ -268,7 +275,6 @@
                     track.innerHTML = cardHtml;
                 } else {
                     track.innerHTML = cardHtml + cardHtml;
-                    requestAnimationFrame(() => initMarquee(track));
                 }
 
             } catch (e) {
@@ -279,7 +285,6 @@
 
         function initMarquee(track) {
             const container = document.getElementById('marqueeContainer');
-            const halfWidth = track.scrollWidth / 2;
             const autoSpeed = 0.5;   // px/frame when auto-scrolling
             const dragDecay = 0.92;  // momentum friction (0–1, lower = stops faster)
 
@@ -291,21 +296,33 @@
             let lastX = 0;
             let lastTime = 0;
 
-            function clamp(val) {
+            function clamp(val, halfWidth) {
                 return ((val % halfWidth) + halfWidth) % halfWidth;
             }
 
             function tick() {
+                if (track.classList.contains('static')) {
+                    track.style.transform = 'none';
+                    requestAnimationFrame(tick);
+                    return;
+                }
+
+                const halfWidth = track.scrollWidth / 2;
+                if (halfWidth <= 0) {
+                    requestAnimationFrame(tick);
+                    return;
+                }
+
                 if (isDragging) {
                     // While dragging: track is controlled by pointer/touch events
                 } else if (Math.abs(velocity) > 0.1) {
                     // Momentum: coast to a stop after drag release
-                    offset = clamp(offset + velocity);
+                    offset = clamp(offset + velocity, halfWidth);
                     velocity *= dragDecay;
                 } else {
                     // Auto-scroll
                     velocity = 0;
-                    offset = clamp(offset + autoSpeed);
+                    offset = clamp(offset + autoSpeed, halfWidth);
                 }
                 track.style.transform = `translateX(${-offset}px)`;
                 requestAnimationFrame(tick);
@@ -326,7 +343,7 @@
             window.addEventListener('mousemove', (e) => {
                 if (!isDragging) return;
                 const dx = dragStartX - e.clientX;
-                offset = clamp(dragStartOffset + dx);
+                offset = clamp(dragStartOffset + dx, track.scrollWidth / 2);
 
                 // Track velocity for momentum
                 const now = performance.now();
@@ -355,7 +372,7 @@
             container.addEventListener('touchmove', (e) => {
                 if (!isDragging) return;
                 const dx = dragStartX - e.touches[0].clientX;
-                offset = clamp(dragStartOffset + dx);
+                offset = clamp(dragStartOffset + dx, track.scrollWidth / 2);
 
                 const now = performance.now();
                 const dt = now - lastTime || 1;
@@ -426,6 +443,8 @@
             }
         });
 
+        const marqueeTrack = document.getElementById('marqueeTrack');
+        initMarquee(marqueeTrack);
         loadEndorsements();
     </script>
 </body>

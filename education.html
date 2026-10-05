@@ -1,12 +1,13 @@
 <!DOCTYPE html>
-<link rel="icon" href="A.png">
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ansh Gandhi | Education</title>
+    <link rel="icon" href="A.png">
     <link rel="stylesheet" href="style.css">
+    <link rel="preload" as="image" href="https://i.imghippo.com/files/fey1706cSc.png" fetchpriority="high">
+    <link rel="preload" as="image" href="https://wp.logos-download.com/wp-content/uploads/2019/11/Carnegie_Mellon_University_Logo_full-700x700.png" fetchpriority="high">
     <style>
         .education-flip-card {
             min-height: 520px;
@@ -86,6 +87,11 @@
 
         .education-card-back li {
             display: inline;
+        }
+
+        .education-card-back a {
+            color: inherit;
+            text-decoration: none;
         }
 
         .education-card-back li:not(:last-child)::after {
@@ -274,7 +280,7 @@
             <div class="education-card-inner">
                 <div class="education-card-face education-card-front">
                     <span style="font-weight:800; font-size:20px; color:var(--nyu-violet); letter-spacing: 5px; display:block; margin-bottom:10px;">NYU SHANGHAI</span>
-                    <img src="https://i.imghippo.com/files/fey1706cSc.png" style="width: 160px; height: 160px; object-fit: contain;" alt="NYU Shanghai Logo">
+                    <img src="https://i.imghippo.com/files/fey1706cSc.png" style="width: 160px; height: 160px; object-fit: contain;" alt="NYU Shanghai Logo" fetchpriority="high" decoding="async">
                     <h2>B.A. in Business Administration <br> and Finance</h2>
                     <p class="school-unit">&nbsp;</p>
                     <p style="font-size:1.8rem; font-weight:800;">GPA: 3.88</p>
@@ -302,7 +308,7 @@
             <div class="education-card-inner">
                 <div class="education-card-face education-card-front">
                     <span style="font-weight:800; font-size:20px; color:var(--cmu-red); letter-spacing: 5px; display:block; margin-bottom:10px;">CARNEGIE MELLON UNIVERSITY</span>
-                    <img src="https://wp.logos-download.com/wp-content/uploads/2019/11/Carnegie_Mellon_University_Logo_full-700x700.png" style="width: 160px; height: 160px; object-fit: contain;" alt="Carnegie Mellon University Logo">
+                    <img src="https://wp.logos-download.com/wp-content/uploads/2019/11/Carnegie_Mellon_University_Logo_full-700x700.png" style="width: 160px; height: 160px; object-fit: contain;" alt="Carnegie Mellon University Logo" fetchpriority="high" decoding="async">
                     <h2>B.S. in Business Administration <br> with an Additional in Statistics and Machine Learning</h2>
                     <p style="font-size:1.8rem; font-weight:800;">GPA: 3.88</p>
                     <p style="margin: 5px 0; font-size:25px;">August 2025 - May 2028</p>
@@ -324,9 +330,9 @@
                     </ul>
                     <h2>Clubs</h2>
                     <ul>
-                        <li>CMU Moon Miners</li>
-                        <li>Tepper A.I. Club</li>
-                        <li>Tisbert Sketch Comedy</li>
+                        <li><a href="https://www.cmu-moon-miners.com/" target="_blank" rel="noopener noreferrer">CMU Moon Miners</a></li>
+                        <li><a href="https://www.tepperaiclub.com/" target="_blank" rel="noopener noreferrer">Tepper A.I. Club</a></li>
+                        <li><a href="https://www.youtube.com/c/tisbertsketchcomedy" target="_blank" rel="noopener noreferrer">Tisbert Sketch Comedy</a></li>
                         <li>Transfer Student Organization</li>
                     </ul>
                 </div>
